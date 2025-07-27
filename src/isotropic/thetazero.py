@@ -25,7 +25,9 @@ def get_theta_zero(x: Array, g:callable) -> float:
 
     # We wrap the function g into a callable F that integrates g from 0 to theta.
     def F(theta: float) -> Array:
-        return simpsons_rule(g, 0, theta, ..., 1e-9) # TODO: Provide the correct value for C based on the 4th derivative bound
+        # TODO: Provide the correct value for C based on the 4th derivative bound
+        # return simpsons_rule(g, 0, theta, ..., 1e-9) 
+        raise NotImplementedError("Simpson's rule integration is not implemented yet.")
 
     # Use bisection to find theta_0 such that the integral equals x
     theta_zero: float = get_theta(F, 0, jnp.pi, x, 1e-9)
