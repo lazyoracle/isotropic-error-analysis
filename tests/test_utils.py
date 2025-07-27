@@ -1,5 +1,6 @@
 from isotropic.utils.simpsons import simpsons_rule
 from isotropic.utils.bisection import get_theta
+from isotropic.utils.distribution import double_factorial, normal_integrand
 
 import jax.numpy as jnp
 
@@ -38,3 +39,30 @@ def test_get_theta():
     # Check if the estimate is close to the expected value
     expected_value = 5.0
     assert jnp.isclose(theta_estimate, expected_value, atol=eps), f"Expected {expected_value}, got {theta_estimate}"
+
+def test_double_factorial():
+    # Test even double factorial
+    n_even = 6
+    result_even = double_factorial(n_even)
+    expected_even = 48.0  # 6!! = 6 * 4 * 2 = 48
+    assert jnp.isclose(result_even, expected_even), f"Expected {expected_even}, got {result_even}"
+
+    # Test odd double factorial
+    n_odd = 5
+    result_odd = double_factorial(n_odd)
+    expected_odd = 15.0  # 5!! = 5 * 3 * 1 = 15
+    assert jnp.isclose(result_odd, expected_odd), f"Expected {expected_odd}, got {result_odd}"
+
+    # Test zero double factorial
+    n_zero = 0
+    result_zero = double_factorial(n_zero)
+    expected_zero = 1.0
+    assert jnp.isclose(result_zero, expected_zero), f"Expected {expected_zero}, got {result_zero}"
+
+def test_normal_integrand():
+    theta = jnp.pi / 4  # 45 degrees
+    d = 3  # Dimension
+    sigma = 0.5  # Sigma value
+    result = normal_integrand(theta, d, sigma)
+
+    raise AssertionError("Test not implemented yet")  # Placeholder for actual test logic
