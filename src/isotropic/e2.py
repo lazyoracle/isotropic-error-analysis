@@ -1,5 +1,6 @@
 """This module contains functions for generating the vector e_2"""
 
+from typing import Tuple
 import jax
 import jax.numpy as jnp
 import jax.random as random
@@ -77,7 +78,7 @@ def F_j(theta_j: float, j: int, d: int) -> Array:
     else:
         return F_even(None)
 
-def get_e2(d: int, F_j: callable, key: jax.random.PRNGKey = random.PRNGKey(0)) -> Array:
+def get_e2(d: int, F_j: callable, key: jax.random.PRNGKey = random.PRNGKey(0)) -> Tuple[Array, Array]:
     """
     Generates the vector e_2 in R^d.
 
@@ -92,8 +93,10 @@ def get_e2(d: int, F_j: callable, key: jax.random.PRNGKey = random.PRNGKey(0)) -
 
     Returns
     -------
-    Array
-        The vector e_2 in R^d.
+    Tuple[Array, Array]
+        A tuple containing:
+        - theta: Array of angles used to construct e_2.
+        - e2: Array representing the vector e_2 in R^d.
     """
     theta:Array = jnp.zeros(d - 1)
 
@@ -131,4 +134,4 @@ def get_e2(d: int, F_j: callable, key: jax.random.PRNGKey = random.PRNGKey(0)) -
     # e2[d] has additional cos(theta) term in product
     e2 = e2 * jnp.cos(theta)
 
-    return e2
+    return theta, e2
