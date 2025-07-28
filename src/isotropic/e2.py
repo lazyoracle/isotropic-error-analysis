@@ -104,12 +104,16 @@ def get_e2(d: int, F_j: callable, key: jax.random.PRNGKey = random.PRNGKey(0)) -
     # Generate theta_j for j = 1, ..., d-2 using bisection method
     # TODO: vectorize this loop 
     for j in range(0, d - 2, 1):
+        # JAX PRNG is stateless, so we need to split the key
+        key, subkey = random.split(key) 
+        x = random.uniform(key, shape=(), minval=0, maxval=1)
+
         theta_j = get_theta(
             F = lambda theta: F_j(theta, j, d),
             a = 0,
             b = jnp.pi,
-            x = random.uniform(key, shape=(), minval=0, maxval=1),
-            tol = 1e-9
+            x = x,
+            eps = 1e-9
         )
 
         theta = theta.at[j].set(theta_j)
