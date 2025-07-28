@@ -1,6 +1,8 @@
 """This module contains functions for estimating the integral of a function using Simpson's rule."""
+
 import jax.numpy as jnp
 from jax import Array
+
 
 def simpsons_rule(f: callable, a: float, b: float, C: float, tol: float) -> Array:
     """
@@ -29,9 +31,9 @@ def simpsons_rule(f: callable, a: float, b: float, C: float, tol: float) -> Arra
     if n % 2 == 1:
         n += 1  # Simpson's rule requires even n
 
-    x:Array = jnp.linspace(a, b, n + 1)
-    y:Array = f(x)
+    x: Array = jnp.linspace(a, b, n + 1)
+    y: Array = f(x)
 
-    S:Array = y[0] + y[-1] + 4 * jnp.sum(y[1:-1:2]) + 2 * jnp.sum(y[2:-2:2])
-    integral:Array = (b - a) / (3 * n) * S
-    return (integral)
+    S: Array = y[0] + y[-1] + 4 * jnp.sum(y[1:-1:2]) + 2 * jnp.sum(y[2:-2:2])
+    integral: Array = (b - a) / (3 * n) * S
+    return integral
