@@ -34,10 +34,11 @@ def F_j(theta_j: float, j: int, d: int) -> Array:
     den = double_factorial(dj - 1)
 
     def F_odd(_):
+        # TODO: confirm that denom of C_j is correct
         C_j = double_factorial(dj - 1) / (2 * jnp.pi * double_factorial(dj - 2))
         prefactor = C_j * num / den
-        k_max = (dj - 2) // 2 + 1  # upper bound for k in range
-        k_vals = jnp.arange(k_max)
+        k_max = (dj - 2) // 2  # upper bound for k in range
+        k_vals = jnp.arange(0, k_max + 1)
 
         def product_term(k):
             num_factors = jnp.arange(dj - 2, 2 * k + 1, -2)
@@ -71,7 +72,8 @@ def F_j(theta_j: float, j: int, d: int) -> Array:
         sum_terms = 0.0
         for k in k_vals:
             sum_terms += product_term(k)
-        return prefactor * theta_j - C_j * jnp.cos(theta_j) * sum_terms
+        # TODO: Confirm there is no stray theta in this formula
+        return prefactor - C_j * jnp.cos(theta_j) * sum_terms
 
     # TODO: Use a conditional to choose between F_odd and F_even based on j
     # return lax.cond(j % 2 == 1, F_odd, F_even, operand=None)
