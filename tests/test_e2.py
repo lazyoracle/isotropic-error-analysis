@@ -8,11 +8,11 @@ def test_get_e2():
     """Test get_e2 for dim d=5"""
     d: int = 5
 
-    def F_j(theta_j: float, j: int, d: int) -> Array:
+    def mock_F_j(theta_j: float, j: int, d: int) -> Array:
         """Dummy function for F_j"""
         return theta_j
 
-    theta, e2 = get_e2(d=d, F_j=F_j, key=random.PRNGKey(2441139))
+    theta, e2 = get_e2(d=d, F_j=mock_F_j, key=random.PRNGKey(2441139))
 
     # calculate e2 manually for theta values
     e2_expected = jnp.ones_like(theta)
