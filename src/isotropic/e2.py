@@ -1,9 +1,83 @@
 """This module contains functions for generating the vector e_2"""
 
+import jax
+import jax.numpy as jnp
+import jax.random as random
 from jax import Array
 from isotropic.utils.bisection import get_theta
+from isotropic.utils.distribution import double_factorial
 
-def get_e2(d: int) -> Array:
+def calculate_F_j(theta_j: float, j: int, d: int) -> Array:
+    """
+    Calculate the function F_j for the given angle theta_j and index j in dimension d.
+
+    Parameters
+    ----------
+    theta_j : float
+        The angle at which to evaluate the function.
+    j : int
+        The index corresponding to the angle.
+    d : int
+        The dimension of the space.
+
+    Returns
+    -------
+    Array
+        The value of the function F_j evaluated at theta_j.
+    """
+    dj = d - j
+    num = double_factorial(dj - 2)
+    den = double_factorial(dj - 1)
+    
+
+    def F_odd(_):
+        C_j = double_factorial(dj - 1) / (2 * jnp.pi * double_factorial(dj - 2))
+        prefactor = C_j * num / den
+        k_max = (dj - 2) // 2 + 1  # upper bound for k in range
+        k_vals = jnp.arange(k_max)
+
+        def product_term(k):
+            num_factors = jnp.arange(dj - 2, 2 * k + 1, -2)
+            den_factors = jnp.arange(dj - 1, 2 * k, -2)
+            num_prod = jnp.prod(num_factors) if num_factors.size > 0 else 1.0
+            den_prod = jnp.prod(den_factors) if den_factors.size > 0 else 1.0
+            return (num_prod / den_prod) * jnp.sin(theta_j) ** (2 * k)
+
+        # TODO: Use vectorization for better performance
+        # sum_terms = jnp.sum(jnp.vectorize(product_term)(k_vals))
+        sum_terms = 0.0
+        for k in k_vals:
+            sum_terms += product_term(k)
+        return prefactor - C_j * jnp.cos(theta_j) * sum_terms
+
+    def F_even(_):
+        C_j = double_factorial(dj - 1) / (jnp.pi * double_factorial(dj - 2))
+        prefactor = C_j * num / den
+        k_max = (dj - 1) // 2
+        k_vals = jnp.arange(1, k_max + 1)
+
+        def product_term(k):
+            num_factors = jnp.arange(dj - 2, 2 * k, -2)
+            den_factors = jnp.arange(dj - 1, 2 * k - 1, -2)
+            num_prod = jnp.prod(num_factors) if num_factors.size > 0 else 1.0
+            den_prod = jnp.prod(den_factors) if den_factors.size > 0 else 1.0
+            return (num_prod / den_prod) * jnp.sin(theta_j) ** (2 * k - 1)
+
+        # TODO: Use vectorization for better performance
+        # sum_terms = jnp.sum(jnp.vectorize(product_term)(k_vals))
+        sum_terms = 0.0
+        for k in k_vals:
+            sum_terms += product_term(k)
+        return prefactor * theta_j - C_j * jnp.cos(theta_j) * sum_terms
+
+    # TODO: Use a conditional to choose between F_odd and F_even based on j
+    # return lax.cond(j % 2 == 1, F_odd, F_even, operand=None)
+    if j % 2 == 1:
+        return F_odd(None)
+    else:
+        return F_even(None)
+
+def get_e2(d: int, key: jax.random.PRNGKey = random.PRNGKey(0)) -> Array:
     """
     Generates the vector e_2 in R^d.
 
