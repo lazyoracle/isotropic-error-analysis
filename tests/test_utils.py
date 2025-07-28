@@ -75,10 +75,16 @@ def test_double_factorial():
 
 def test_normal_integrand():
     theta = jnp.pi / 4  # 45 degrees
-    d = 3  # Dimension
+    d = 5  # Dimension
     sigma = 0.5  # Sigma value
-    _ = normal_integrand(theta, d, sigma)
+    result_g = normal_integrand(theta, d, sigma)
 
-    raise AssertionError(
-        "Test not implemented yet"
-    )  # Placeholder for actual test logic
+    # Calculate expected output manually
+    expected_num = (4 * 2) * (1 - (sigma**2)) * (jnp.sin(theta) ** (d - 1))
+    expected_den = (
+        jnp.pi
+        * (3 * 1)
+        * ((1 + (sigma**2) - (2 * sigma * jnp.cos(theta))) ** ((d + 1) / 2.0))
+    )
+    expected_g = expected_num / expected_den
+    assert jnp.isclose(result_g, expected_g), f"Expected {expected_g}, got {result_g}"
