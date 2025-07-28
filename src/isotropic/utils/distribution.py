@@ -19,7 +19,7 @@ def double_factorial(n: int ) -> float:
     float
         The value of the double factorial n!!
     """
-    return jnp.prod(jnp.arange(n, 0, -2))
+    return jnp.where(n <= 0, 1, jnp.prod(jnp.arange(n, 0, -2)))
 
 
 
