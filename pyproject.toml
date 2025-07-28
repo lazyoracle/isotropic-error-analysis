@@ -96,3 +96,19 @@ docstring-code-format = false
 # This only has an effect when the `docstring-code-format` setting is
 # enabled.
 docstring-code-line-length = "dynamic"
+
+[tool.numpydoc_validation]
+checks = [
+    "all", # check all except the following
+    "ES01", # No extended summary found
+    "SA01", # See Also section not found
+    "EX01", # No examples section found
+    "GL08", # The object does not have a docstring
+]
+exclude = [  # don't report on objects that match any of these regex
+    '\.__init__$',
+    '\.__call__$',
+    '\._tree_flatten$',
+    '\._tree_unflatten$',
+    'test_*',
+]

@@ -1,4 +1,4 @@
-"""This module contains functions for constructing orthonormal basis of Pi"""
+"""This module contains functions for constructing orthonormal basis of Pi."""
 
 from jax import Array
 

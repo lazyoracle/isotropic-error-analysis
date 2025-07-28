@@ -1,4 +1,4 @@
-"""This module contains functions for generating the vector e_2"""
+"""This module contains functions for generating the vector e_2."""
 
 from typing import Tuple
 
@@ -85,7 +85,7 @@ def get_e2(
     d: int, F_j: callable, key: jax.random.PRNGKey = random.PRNGKey(0)
 ) -> Tuple[Array, Array]:
     """
-    Generates the vector e_2 in R^d.
+    Generate the vector e_2 in R^d.
 
     Parameters
     ----------
@@ -94,7 +94,7 @@ def get_e2(
     F_j : callable
         Function to compute F_j for the given angle, dimension and index.
     key : jax.random.PRNGKey, optional
-        Random key for reproducibility, by default random.PRNGKey(0)
+        Random key for reproducibility, by default random.PRNGKey(0).
 
     Returns
     -------
