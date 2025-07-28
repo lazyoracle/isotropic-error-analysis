@@ -7,7 +7,7 @@ from jax import Array
 from isotropic.utils.bisection import get_theta
 from isotropic.utils.distribution import double_factorial
 
-def calculate_F_j(theta_j: float, j: int, d: int) -> Array:
+def F_j(theta_j: float, j: int, d: int) -> Array:
     """
     Calculate the function F_j for the given angle theta_j and index j in dimension d.
 
@@ -77,7 +77,7 @@ def calculate_F_j(theta_j: float, j: int, d: int) -> Array:
     else:
         return F_even(None)
 
-def get_e2(d: int, key: jax.random.PRNGKey = random.PRNGKey(0)) -> Array:
+def get_e2(d: int, F_j: callable, key: jax.random.PRNGKey = random.PRNGKey(0)) -> Array:
     """
     Generates the vector e_2 in R^d.
 
@@ -85,6 +85,8 @@ def get_e2(d: int, key: jax.random.PRNGKey = random.PRNGKey(0)) -> Array:
     ----------
     d : int
         Dimension of the space.
+    F_j : callable
+        Function to compute F_j for the given angle, dimension and index.
     key : jax.random.PRNGKey, optional
         Random key for reproducibility, by default random.PRNGKey(0)
 
@@ -103,7 +105,7 @@ def get_e2(d: int, key: jax.random.PRNGKey = random.PRNGKey(0)) -> Array:
     # TODO: vectorize this loop 
     for j in range(0, d - 2, 1):
         theta_j = get_theta(
-            F = lambda theta: calculate_F_j(theta, j, d),
+            F = lambda theta: F_j(theta, j, d),
             a = 0,
             b = jnp.pi,
             x = random.uniform(key, shape=(), minval=0, maxval=1),
