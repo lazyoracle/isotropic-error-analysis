@@ -1,6 +1,9 @@
 [project]
 name = "isotropic"
+authors = [
+    { name = "Anurag Saha Roy", email = "contact@anuragsaharoy.me"}]
 version = "0.1.0"
+license = "Apache-2.0"
 description = "Analysis of isotropic errors in QC algorithms"
 readme = "README.md"
 requires-python = ">=3.11"
