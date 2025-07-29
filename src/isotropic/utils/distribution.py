@@ -4,7 +4,7 @@ import jax.numpy as jnp
 from jax import Array
 
 
-def double_factorial(n: int) -> float:
+def double_factorial(n: int) -> Array:
     """
     Helper function to compute double factorial:
 
@@ -17,13 +17,13 @@ def double_factorial(n: int) -> float:
 
     Returns
     -------
-    float
+    Array
         The value of the double factorial n!!
     """
     return jnp.where(n <= 0, 1, jnp.prod(jnp.arange(n, 0, -2)))
 
 
-def normal_integrand(theta: float | Array, d: int, sigma: float) -> jnp.ndarray:
+def normal_integrand(theta: float, d: int, sigma: float) -> Array:
     """
     Computes the function g(θ) that is integrated to calculate F(θ) which is the
     distribution function for the angle θ in a normal distribution:
@@ -32,7 +32,7 @@ def normal_integrand(theta: float | Array, d: int, sigma: float) -> jnp.ndarray:
 
     Parameters
     ----------
-    theta : float or array-like
+    theta : float
         Angle parameter(s).
     d : int
         Dimension parameter.
@@ -41,14 +41,14 @@ def normal_integrand(theta: float | Array, d: int, sigma: float) -> jnp.ndarray:
 
     Returns
     -------
-    result : float or ndarray
+    Array
         Value(s) of the function evaluated at `theta`.
     """
 
-    # Convert inputs to JAX arrays
-    theta = jnp.asarray(theta)
-    d = jnp.asarray(d, dtype=jnp.int32)
-    sigma = jnp.asarray(sigma)
+    # TODO: Convert inputs to JAX arrays once @jit works
+    # theta = jnp.asarray(theta)
+    # d = jnp.asarray(d, dtype=jnp.int32)
+    # sigma = jnp.asarray(sigma)
 
     # factorial components
     numerator_factorial = double_factorial(d - 1)

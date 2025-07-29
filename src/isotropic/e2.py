@@ -1,11 +1,11 @@
 """This module contains functions for generating the vector e_2."""
 
-from typing import Tuple
+from typing import Callable, Tuple
 
-import jax
 import jax.numpy as jnp
 import jax.random as random
 from jax import Array
+from jax.typing import ArrayLike
 
 from isotropic.utils.bisection import get_theta
 from isotropic.utils.distribution import double_factorial
@@ -84,7 +84,7 @@ def F_j(theta_j: float, j: int, d: int) -> Array:
 
 
 def get_e2(
-    d: int, F_j: callable, key: jax.random.PRNGKey = random.PRNGKey(0)
+    d: int, F_j: Callable, key: ArrayLike = random.PRNGKey(0)
 ) -> Tuple[Array, Array]:
     """
     Generate the vector e_2 in R^d.
@@ -93,9 +93,9 @@ def get_e2(
     ----------
     d : int
         Dimension of the space.
-    F_j : callable
+    F_j : Callable
         Function to compute F_j for the given angle, dimension and index.
-    key : jax.random.PRNGKey, optional
+    key : ArrayLike, optional
         Random key for reproducibility, by default random.PRNGKey(0).
 
     Returns
@@ -118,7 +118,11 @@ def get_e2(
         x = random.uniform(key, shape=(), minval=0, maxval=1)
 
         theta_j = get_theta(
-            F=lambda theta: F_j(theta, j, d), a=0, b=jnp.pi, x=x, eps=1e-9
+            F=lambda theta: F_j(theta, j, d),
+            a=0,
+            b=jnp.pi,
+            x=x,
+            eps=1e-9,  # type: ignore
         )
 
         theta = theta.at[j].set(theta_j)

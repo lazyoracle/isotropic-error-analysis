@@ -1,16 +1,18 @@
 """This module contains functions for estimating the integral of a function using Simpson's rule."""
 
+from typing import Callable
+
 import jax.numpy as jnp
 from jax import Array
 
 
-def simpsons_rule(f: callable, a: float, b: float, C: float, tol: float) -> Array:
+def simpsons_rule(f: Callable, a: float, b: float, C: float, tol: float) -> Array:
     """
     Estimates the integral of a function using Simpson's rule.
 
     Parameters
     ----------
-    f : callable
+    f : Callable
         Function to integrate.
     a : float
         Lower limit of integration.

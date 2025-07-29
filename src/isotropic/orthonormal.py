@@ -2,9 +2,10 @@
 
 import jax.numpy as jnp
 from jax import Array
+from jax.typing import ArrayLike
 
 
-def get_orthonormal_basis(Phi: Array) -> Array:
+def get_orthonormal_basis(Phi: ArrayLike) -> Array:
     """
     Construct an orthonormal basis for the hyperplane Π tangent to the sphere at point Φ.
 
@@ -13,7 +14,7 @@ def get_orthonormal_basis(Phi: Array) -> Array:
 
     Parameters
     ----------
-    Phi : Array
+    Phi : ArrayLike
         A point on the unit sphere, should be a normalized vector.
 
     Returns

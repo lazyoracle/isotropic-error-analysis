@@ -1,7 +1,9 @@
 """This module contains functions for the bisection algorithm to calculate F inverse"""
 
+from typing import Callable
 
-def get_theta(F: callable, a: float, b: float, x: float, eps: float) -> float:
+
+def get_theta(F: Callable, a: float, b: float, x: float, eps: float) -> float:
     """
     Finds the value of theta such that F(theta) = x using the bisection method.
     This function assumes that F is an increasing function in the interval [a, b]
@@ -22,7 +24,7 @@ def get_theta(F: callable, a: float, b: float, x: float, eps: float) -> float:
 
     Parameters
     ----------
-    F : callable
+    F : Callable
         Function for which to compute the inverse.
     a : float
         Lower bound of the interval.
