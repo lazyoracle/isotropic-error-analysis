@@ -2,8 +2,12 @@
 
 from typing import Callable
 
+from jax.typing import ArrayLike
 
-def get_theta(F: Callable, a: float, b: float, x: float, eps: float) -> float:
+
+def get_theta(
+    F: Callable, a: float, b: float, x: float | ArrayLike, eps: float
+) -> float:
     """
     Finds the value of theta such that F(theta) = x using the bisection method.
     This function assumes that F is an increasing function in the interval [a, b]
@@ -30,7 +34,7 @@ def get_theta(F: Callable, a: float, b: float, x: float, eps: float) -> float:
         Lower bound of the interval.
     b : float
         Upper bound of the interval.
-    x : float
+    x : float | ArrayLike
         Value for which to find the inverse.
     eps : float
         Tolerance for convergence.

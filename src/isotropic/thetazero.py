@@ -36,6 +36,6 @@ def get_theta_zero(x: ArrayLike, g: Callable) -> float:
         return simpsons_rule(g, 0, theta, 1, 1e-9)
 
     # Use bisection to find theta_0 such that the integral equals x
-    theta_zero: float = get_theta(F, 0, jnp.pi, x, 1e-9)  # type: ignore
+    theta_zero: float = get_theta(F, 0, jnp.pi, x, 1e-9)
 
     return theta_zero

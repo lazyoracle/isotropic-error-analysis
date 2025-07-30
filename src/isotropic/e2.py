@@ -122,7 +122,7 @@ def get_e2(
             a=0,
             b=jnp.pi,
             x=x,
-            eps=1e-9,  # type: ignore
+            eps=1e-9,
         )
 
         theta = theta.at[j].set(theta_j)
