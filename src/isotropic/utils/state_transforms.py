@@ -2,10 +2,9 @@
 
 import jax.numpy as jnp
 from jax import Array
-from jax.typing import ArrayLike
 
 
-def statevector_to_hypersphere(Phi: ArrayLike) -> Array:
+def statevector_to_hypersphere(Phi: Array) -> Array:
     """
     Generate the hypersphere Phi from statevector Psi
 
@@ -26,7 +25,7 @@ def statevector_to_hypersphere(Phi: ArrayLike) -> Array:
     return S
 
 
-def hypersphere_to_statevector(S: ArrayLike) -> Array:
+def hypersphere_to_statevector(S: Array) -> Array:
     """
     Generate the statevector Psi from hypersphere Phi
 
@@ -46,7 +45,7 @@ def hypersphere_to_statevector(S: ArrayLike) -> Array:
     return Phi
 
 
-def add_isotropic_error(Phi: ArrayLike, e2: ArrayLike, theta_zero: float) -> Array:
+def add_isotropic_error(Phi: Array, e2: Array, theta_zero: float) -> Array:
     """
     Add isotropic error to state Phi given e2 and theta_zero
 
