@@ -3,6 +3,10 @@ import jax.numpy as jnp
 from isotropic.utils.bisection import get_theta
 from isotropic.utils.distribution import double_factorial, normal_integrand
 from isotropic.utils.simpsons import simpsons_rule
+from isotropic.utils.state_transforms import (
+    hypersphere_to_statevector,
+    statevector_to_hypersphere,
+)
 
 
 def test_simpsons_rule():
@@ -87,4 +91,11 @@ def test_normal_integrand():
         * ((1 + (sigma**2) - (2 * sigma * jnp.cos(theta))) ** ((d + 1) / 2.0))
     )
     expected_g = expected_num / expected_den
-    assert jnp.isclose(result_g, expected_g), f"Expected {expected_g}, got {result_g}"
+    assert jnp.isclose(result_g, expected_g)
+
+
+def test_state_transforms():
+    S = jnp.asarray([1, 2, 3, 4, 5, 6, 7, 8])
+    Phi = hypersphere_to_statevector(S)
+    S_result = statevector_to_hypersphere(Phi)
+    assert jnp.allclose(S, S_result)
