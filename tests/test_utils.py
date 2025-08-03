@@ -1,7 +1,11 @@
 import jax.numpy as jnp
 
 from isotropic.utils.bisection import get_theta
-from isotropic.utils.distribution import double_factorial, normal_integrand
+from isotropic.utils.distribution import (
+    double_factorial,
+    double_factorial_ratio,
+    normal_integrand,
+)
 from isotropic.utils.simpsons import simpsons_rule
 from isotropic.utils.state_transforms import (
     hypersphere_to_statevector,
@@ -77,6 +81,22 @@ def test_double_factorial():
     )
 
 
+def test_double_factorial_ratio():
+    num, den = (2**5) - 1, (2**5) - 2
+    ratio_received = double_factorial_ratio(num, den)
+    ratio_expected = double_factorial(num) / double_factorial(den)
+    assert jnp.isclose(ratio_received, ratio_expected), (
+        f"Expected {ratio_expected}, got {ratio_received}"
+    )
+
+    num, den = (2**5) - 3, (2**5) - 1
+    ratio_received = double_factorial_ratio(num, den)
+    ratio_expected = double_factorial(num) / double_factorial(den)
+    assert jnp.isclose(ratio_received, ratio_expected), (
+        f"Expected {ratio_expected}, got {ratio_received}"
+    )
+
+
 def test_normal_integrand():
     theta = jnp.pi / 4  # 45 degrees
     d = 5  # Dimension
@@ -91,11 +111,10 @@ def test_normal_integrand():
         * ((1 + (sigma**2) - (2 * sigma * jnp.cos(theta))) ** ((d + 1) / 2.0))
     )
     expected_g = expected_num / expected_den
-    assert jnp.isclose(result_g, expected_g)
+    assert jnp.isclose(result_g, expected_g), f"Expected {expected_g}, got {result_g}"
 
 
 def test_state_transforms():
     S = jnp.asarray([1, 2, 3, 4, 5, 6, 7, 8])
-    Phi = hypersphere_to_statevector(S)
-    S_result = statevector_to_hypersphere(Phi)
-    assert jnp.allclose(S, S_result)
+    S_result = statevector_to_hypersphere(hypersphere_to_statevector(S))
+    assert jnp.allclose(S, S_result), f"Expected {S}, got {S_result}"
