@@ -1,7 +1,7 @@
 import jax.numpy as jnp
 from jax import Array, random
 
-from isotropic.e2 import F_j, get_e2
+from isotropic.e2 import F_j, get_e2_coeffs
 from isotropic.utils.distribution import double_factorial
 
 
@@ -13,7 +13,7 @@ def test_get_e2():
         """Dummy function for F_j"""
         return theta_j
 
-    theta, e2 = get_e2(d=d, F_j=mock_F_j, key=random.PRNGKey(2441139))
+    theta, e2 = get_e2_coeffs(d=d, F_j=mock_F_j, key=random.PRNGKey(2441139))
 
     # calculate e2 manually for theta values
     e2_expected = jnp.ones_like(theta)
@@ -44,7 +44,7 @@ def test_F_j_even():
     C_j = double_factorial(d - j - 1) / (jnp.pi * double_factorial(d - j - 2))
     num = double_factorial(d - j - 2)
     den = double_factorial(d - j - 1)
-    prefactor = C_j * num / den
+    prefactor = C_j * (num / den) * theta_j
 
     # k goes from 1 to (d - j - 1) // 2, i.e., 1 to 2
     k_val_1 = ((d - j - 2) / ((d - j - 1) * (d - j - 3))) * jnp.sin(theta_j)
@@ -65,7 +65,7 @@ def test_F_j_odd():
     result = F_j(theta_j, j, d)
 
     # manually calculate expected result
-    C_j = double_factorial(d - j - 1) / (2 * jnp.pi * double_factorial(d - j - 2))
+    C_j = double_factorial(d - j - 1) / (2 * double_factorial(d - j - 2))
     num = double_factorial(d - j - 2)
     den = double_factorial(d - j - 1)
     prefactor = C_j * num / den
