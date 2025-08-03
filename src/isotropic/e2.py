@@ -71,7 +71,6 @@ def F_j(theta_j: float, j: int, d: int) -> Array:
         sum_terms = 0.0
         for k in k_vals:
             sum_terms += product_term(k)
-        # TODO: Confirm there is no stray theta in this formula
         return prefactor - C_j * jnp.cos(theta_j) * sum_terms
 
     # TODO: Use a conditional to choose between F_odd and F_even based on j
@@ -82,7 +81,7 @@ def F_j(theta_j: float, j: int, d: int) -> Array:
         return F_even(None)
 
 
-def get_e2(
+def get_e2_coeffs(
     d: int, F_j: Callable, key: ArrayLike = random.PRNGKey(0)
 ) -> Tuple[Array, Array]:
     """
