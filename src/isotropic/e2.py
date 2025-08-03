@@ -34,8 +34,7 @@ def F_j(theta_j: float, j: int, d: int) -> Array:
     den = double_factorial(dj - 1)
 
     def F_odd(_):
-        # TODO: confirm that denom of C_j is correct
-        C_j = double_factorial(dj - 1) / (2 * jnp.pi * double_factorial(dj - 2))
+        C_j = double_factorial(dj - 1) / (2 * double_factorial(dj - 2))
         prefactor = C_j * num / den
         k_max = (dj - 2) // 2  # upper bound for k in range
         k_vals = jnp.arange(0, k_max + 1)
@@ -56,7 +55,7 @@ def F_j(theta_j: float, j: int, d: int) -> Array:
 
     def F_even(_):
         C_j = double_factorial(dj - 1) / (jnp.pi * double_factorial(dj - 2))
-        prefactor = C_j * num / den
+        prefactor = C_j * (num / den) * theta_j
         k_max = (dj - 1) // 2
         k_vals = jnp.arange(1, k_max + 1)
 
