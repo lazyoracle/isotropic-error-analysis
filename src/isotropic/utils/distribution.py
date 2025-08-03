@@ -20,7 +20,8 @@ def double_factorial(n: int) -> Array:
     Array
         The value of the double factorial n!!
     """
-    return jnp.where(n <= 0, 1, jnp.prod(jnp.arange(n, 0, -2)))
+    # works for numbers as large as 9**6
+    return jnp.where(n <= 0, 1, jnp.prod(jnp.arange(n, 0, -2, dtype=jnp.uint64)))
 
 
 def normal_integrand(theta: float, d: int, sigma: float) -> Array:
