@@ -1,4 +1,5 @@
 import jax.numpy as jnp
+from scipy.linalg import null_space
 
 from isotropic.utils.bisection import get_theta
 from isotropic.utils.distribution import (
@@ -6,6 +7,7 @@ from isotropic.utils.distribution import (
     double_factorial_ratio,
     normal_integrand,
 )
+from isotropic.utils.linalg import jax_null_space
 from isotropic.utils.simpsons import simpsons_rule
 from isotropic.utils.state_transforms import (
     hypersphere_to_statevector,
@@ -118,3 +120,12 @@ def test_state_transforms():
     S = jnp.asarray([1, 2, 3, 4, 5, 6, 7, 8])
     S_result = statevector_to_hypersphere(hypersphere_to_statevector(S))
     assert jnp.allclose(S, S_result), f"Expected {S}, got {S_result}"
+
+
+def test_jax_null_space():
+    A = jnp.array([[1, 2, 3], [4, 5, 6]])
+    null_space_result = jax_null_space(A)
+    null_space_expected = null_space(A)
+    assert jnp.allclose(null_space_result, null_space_expected), (
+        f"Expected {null_space_expected}, got {null_space_result}"
+    )
