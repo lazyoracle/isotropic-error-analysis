@@ -12,16 +12,15 @@ def test_get_orthonormal_basis():
     # Get the orthonormal basis
     basis_vectors = get_orthonormal_basis(Phi)
 
-    # Check if the basis vectors are orthonormal
+    # Check if the basis vectors are unit vectors
     assert jnp.allclose(jnp.linalg.norm(basis_vectors, axis=1), 1.0), (
         "Basis vectors should be unit vectors"
     )
 
-    for k in jnp.arange(basis_vectors.shape[0]):
-        for l in jnp.arange(k + 1, basis_vectors.shape[0]):  # noqa: E741
-            assert jnp.isclose(jnp.dot(basis_vectors[k], basis_vectors[l]), 0.0), (
-                f"Basis vectors {k} and {l} should be orthogonal"
-            )
+    # Check if the basis vectors are orthogonal to each other
+    assert jnp.allclose(
+        jnp.dot(basis_vectors, basis_vectors.T), jnp.eye(basis_vectors.shape[0])
+    ), f"<A, A.T> should be I, got {jnp.dot(basis_vectors, basis_vectors.T)}"
 
     # Check if bases is orthogonal to Phi
     assert jnp.allclose(jnp.dot(basis_vectors, Phi), 0.0), (
