@@ -1,12 +1,14 @@
 import jax.numpy as jnp
+import pytest
 from jax.random import PRNGKey, uniform
 
 from isotropic.orthonormal import get_orthonormal_basis
 
+test_Phis = [uniform(PRNGKey(0), (int(10),)), jnp.array([0, 0, 2, 3, 4, 5, 6, 7, 8, 9])]
 
-def test_get_orthonormal_basis():
-    # Generate a random point on 10 dimensional unit sphere
-    Phi = uniform(PRNGKey(0), (10,))
+
+@pytest.mark.parametrize("Phi", test_Phis)
+def test_get_orthonormal_basis(Phi):
     Phi = Phi / jnp.linalg.norm(Phi)
 
     # Get the orthonormal basis
