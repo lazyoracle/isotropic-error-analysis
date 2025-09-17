@@ -63,5 +63,6 @@ def add_isotropic_error(Phi: Array, e2: Array, theta_zero: float) -> Array:
     Array
         statevector after adding isotropic error
     """
+    # TODO: fix dimension mismatch between Phi and e2
     Psi = (Phi * jnp.cos(theta_zero)) + (e2 * jnp.sin(theta_zero))
     return Psi
