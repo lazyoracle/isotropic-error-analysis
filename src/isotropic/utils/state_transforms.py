@@ -11,14 +11,14 @@ def statevector_to_hypersphere(Phi: Array) -> Array:
     Parameters
     ----------
     psi: ArrayLike
-        statevector as a JAX array of dimension 2^n, for n-qubits
+        statevector as a complex JAX array of dimension 2^n, for n-qubits
 
     Returns
     -------
     Array
-        hypersphere as a JAX array of dimension 2^{n+1} - 1
+        hypersphere as a real JAX array of dimension 2^{n+1}
     """
-    S = jnp.zeros((2 ** (jnp.log2(Phi.shape[0]).astype(int) + 1),), dtype=complex)
+    S = jnp.zeros((2 ** (jnp.log2(Phi.shape[0]).astype(int) + 1),), dtype=float)
     for x in range(S.shape[0] // 2):
         S = S.at[2 * x].set(Phi[x].real)
         S = S.at[2 * x + 1].set(Phi[x].imag)
@@ -32,12 +32,12 @@ def hypersphere_to_statevector(S: Array) -> Array:
     Parameters
     ----------
     S: ArrayLike
-        hypersphere as a JAX array of dimension 2^{n+1} - 1 for n qubits
+        hypersphere as a real JAX array of dimension 2^{n+1} for n qubits
 
     Returns
     -------
     Array
-        statevector as a JAX array of dimension 2^n
+        statevector as a complex JAX array of dimension 2^n
     """
     Phi = jnp.zeros((2 ** (jnp.log2(S.shape[0]).astype(int)),), dtype=complex)
     for x in range(Phi.shape[0]):

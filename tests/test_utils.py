@@ -117,7 +117,11 @@ def test_normal_integrand():
 
 
 def test_state_transforms():
-    S = jnp.asarray([1, 2, 3, 4, 5, 6, 7, 8])
+    Psi = jnp.asarray([1 + 2j, 3 + 4j, 5 + 6j, 7 + 8j])
+    Psi_result = hypersphere_to_statevector(statevector_to_hypersphere(Psi))
+    assert jnp.allclose(Psi, Psi_result), f"Expected {Psi}, got {Psi_result}"
+
+    S = jnp.asarray([1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0])
     S_result = statevector_to_hypersphere(hypersphere_to_statevector(S))
     assert jnp.allclose(S, S_result), f"Expected {S}, got {S_result}"
 
