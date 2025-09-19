@@ -1,5 +1,7 @@
 """This module contains functions for transforming the quantum state"""
 
+from math import log
+
 import jax.numpy as jnp
 from jax import Array
 
@@ -39,7 +41,7 @@ def hypersphere_to_statevector(S: Array) -> Array:
     Array
         statevector as a complex JAX array of dimension 2^n
     """
-    Phi = jnp.zeros((2 ** (jnp.log2(S.shape[0]).astype(int)),), dtype=complex)
+    Phi = jnp.zeros(int(2 ** (log(S.shape[0], 2) - 1)), dtype=complex)
     for x in range(Phi.shape[0]):
         Phi = Phi.at[x].set(S[2 * x] + 1j * S[2 * x + 1])
     return Phi
