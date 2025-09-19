@@ -47,14 +47,14 @@ def hypersphere_to_statevector(S: Array) -> Array:
     return Phi
 
 
-def add_isotropic_error(Phi: Array, e2: Array, theta_zero: float) -> Array:
+def add_isotropic_error(Phi_sp: Array, e2: Array, theta_zero: float) -> Array:
     """
     Add isotropic error to state Phi given e2 and theta_zero
 
     Parameters
     ----------
-    Phi : ArrayLike
-        state to which isotropic error is added
+    Phi_sp : ArrayLike
+        state to which isotropic error is added (in spherical form)
     e2 : ArrayLike
         vector e2 in S_{d-1} with uniform distribution
     theta_zero : float
@@ -63,8 +63,9 @@ def add_isotropic_error(Phi: Array, e2: Array, theta_zero: float) -> Array:
     Returns
     -------
     Array
-        statevector after adding isotropic error
+        statevector in spherical form after adding isotropic error
     """
-    # TODO: fix dimension mismatch between Phi and e2
-    Psi = (Phi * jnp.cos(theta_zero)) + (e2 * jnp.sin(theta_zero))
-    return Psi
+    Psi_sp = (Phi_sp * jnp.cos(theta_zero)) + (
+        (jnp.sum(e2, axis=0)) * jnp.sin(theta_zero)
+    )
+    return Psi_sp
