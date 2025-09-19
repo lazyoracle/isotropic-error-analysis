@@ -46,6 +46,8 @@ def double_factorial_ratio(num: int, den: int) -> Array:
     -----
     For very large numbers, this is numerically stable only when |num - den| is ~5.
     """
+    if abs(num - den) > 4:
+        raise ValueError("num and den should be close to each other")
     num_elems = jnp.arange(num, 0, -2, dtype=jnp.uint64)
     den_elems = jnp.arange(den, 0, -2, dtype=jnp.uint64)
 

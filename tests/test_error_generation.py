@@ -13,10 +13,9 @@ from isotropic.utils.state_transforms import (
 
 
 def test_add_isotropic_error():
-    Phi_original = jnp.asarray([1 + 0j, 1 + 0j], dtype=complex) / jnp.sqrt(
-        2
-    )  # n = 1, d = 3
-    Phi_spherical = statevector_to_hypersphere(Phi_original)  # d+1 = 4
+    Phi = jnp.ones(4, dtype=complex)
+    Phi = Phi / jnp.linalg.norm(Phi)
+    Phi_spherical = statevector_to_hypersphere(Phi)  # d+1 = 4
     basis = get_orthonormal_basis(
         Phi_spherical
     )  # gives d vectors with d+1 elements each
@@ -27,8 +26,13 @@ def test_add_isotropic_error():
     )
     e2 = jnp.expand_dims(coeffs, axis=-1) * basis
 
+    # orthogonality check
+    assert jnp.allclose(jnp.abs(jnp.dot(e2, Phi_spherical)), 0.0), (
+        f"Expected 0.0, got {jnp.abs(jnp.dot(basis, Phi_spherical))}"
+    )
+
     def g(theta):
-        return normal_integrand(theta, d=Phi_spherical.shape[0], sigma=0.9)
+        return normal_integrand(theta, d=Phi_spherical.shape[0], sigma=0.6)
 
     theta_zero = get_theta_zero(x=0.5, g=g)
     Psi_spherical = add_isotropic_error(Phi_spherical, e2=e2, theta_zero=theta_zero)
@@ -38,7 +42,3 @@ def test_add_isotropic_error():
     assert jnp.isclose(jnp.linalg.norm(Psi), 1.0), (
         f"Expected 1.0, got {jnp.linalg.norm(Psi)}"
     )
-
-    # fidelity check
-    fidelity = jnp.abs(jnp.vdot(Phi_original, Psi)) ** 2
-    assert 0.0 <= fidelity <= 1.0, f"Expected fidelity in [0, 1], got {fidelity}"

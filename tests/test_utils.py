@@ -1,5 +1,6 @@
 import jax.numpy as jnp
 from scipy.linalg import null_space
+from scipy.special import factorial2
 
 from isotropic.utils.bisection import get_theta
 from isotropic.utils.distribution import (
@@ -61,7 +62,7 @@ def test_double_factorial():
     # Test even double factorial
     n_even = 6
     result_even = double_factorial(n_even)
-    expected_even = 48.0  # 6!! = 6 * 4 * 2 = 48
+    expected_even = factorial2(n_even)
     assert jnp.isclose(result_even, expected_even), (
         f"Expected {expected_even}, got {result_even}"
     )
@@ -69,7 +70,7 @@ def test_double_factorial():
     # Test odd double factorial
     n_odd = 5
     result_odd = double_factorial(n_odd)
-    expected_odd = 15.0  # 5!! = 5 * 3 * 1 = 15
+    expected_odd = factorial2(n_odd)
     assert jnp.isclose(result_odd, expected_odd), (
         f"Expected {expected_odd}, got {result_odd}"
     )
@@ -77,23 +78,23 @@ def test_double_factorial():
     # Test zero double factorial
     n_zero = 0
     result_zero = double_factorial(n_zero)
-    expected_zero = 1.0
+    expected_zero = factorial2(n_zero)
     assert jnp.isclose(result_zero, expected_zero), (
         f"Expected {expected_zero}, got {result_zero}"
     )
 
 
 def test_double_factorial_ratio():
-    num, den = (2**5) - 1, (2**5) - 2
+    num, den = (2**8) - 1, (2**8) - 2
     ratio_received = double_factorial_ratio(num, den)
-    ratio_expected = double_factorial(num) / double_factorial(den)
+    ratio_expected = factorial2(num) / factorial2(den)
     assert jnp.isclose(ratio_received, ratio_expected), (
         f"Expected {ratio_expected}, got {ratio_received}"
     )
 
-    num, den = (2**5) - 3, (2**5) - 1
+    num, den = (2**8) - 3, (2**8) - 1
     ratio_received = double_factorial_ratio(num, den)
-    ratio_expected = double_factorial(num) / double_factorial(den)
+    ratio_expected = factorial2(num) / factorial2(den)
     assert jnp.isclose(ratio_received, ratio_expected), (
         f"Expected {ratio_expected}, got {ratio_received}"
     )

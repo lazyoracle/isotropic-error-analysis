@@ -1,8 +1,8 @@
 import jax.numpy as jnp
 from jax import Array, random
+from scipy.special import factorial2
 
 from isotropic.e2 import F_j, get_e2_coeffs
-from isotropic.utils.distribution import double_factorial
 
 
 def test_get_e2():
@@ -41,9 +41,9 @@ def test_F_j_even():
     result = F_j(theta_j, j, d)
 
     # manually calculate expected result
-    C_j = double_factorial(d - j - 1) / (jnp.pi * double_factorial(d - j - 2))
-    num = double_factorial(d - j - 2)
-    den = double_factorial(d - j - 1)
+    C_j = factorial2(d - j - 1) / (jnp.pi * factorial2(d - j - 2))
+    num = factorial2(d - j - 2)
+    den = factorial2(d - j - 1)
     prefactor = C_j * (num / den) * theta_j
 
     # k goes from 1 to (d - j - 1) // 2, i.e., 1 to 2
@@ -65,9 +65,9 @@ def test_F_j_odd():
     result = F_j(theta_j, j, d)
 
     # manually calculate expected result
-    C_j = double_factorial(d - j - 1) / (2 * double_factorial(d - j - 2))
-    num = double_factorial(d - j - 2)
-    den = double_factorial(d - j - 1)
+    C_j = factorial2(d - j - 1) / (2 * factorial2(d - j - 2))
+    num = factorial2(d - j - 2)
+    den = factorial2(d - j - 1)
     prefactor = C_j * num / den
 
     # k goes from 0 to (d - j - 2) // 2, i.e., 0 to 2
