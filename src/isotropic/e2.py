@@ -6,28 +6,9 @@ import jax.numpy as jnp
 import jax.random as random
 from jax import Array
 from jax.typing import ArrayLike
-from scipy.special import factorial2
 
 from isotropic.utils.bisection import get_theta
-
-
-def double_factorial_ratio(n: int, m: int) -> float:
-    """
-    Compute the ratio of double factorials n!! / m!!.
-
-    Parameters
-    ----------
-    n : int
-        The numerator double factorial.
-    m : int
-        The denominator double factorial.
-
-    Returns
-    -------
-    float
-        The ratio of the double factorials.
-    """
-    return factorial2(n) / factorial2(m)
+from isotropic.utils.distribution import double_factorial_ratio_scipy
 
 
 def F_j(theta_j: float, j: int, d: int) -> Array:
@@ -49,10 +30,10 @@ def F_j(theta_j: float, j: int, d: int) -> Array:
         The value of the function F_j evaluated at theta_j.
     """
     dj = d - j
-    numoverden = double_factorial_ratio(dj - 2, dj - 1)
+    numoverden = double_factorial_ratio_scipy(dj - 2, dj - 1)
 
     def F_odd(_):
-        C_j = (1 / 2) * double_factorial_ratio(dj - 1, dj - 2)
+        C_j = (1 / 2) * double_factorial_ratio_scipy(dj - 1, dj - 2)
         prefactor = C_j * numoverden
         k_max = (dj - 2) // 2  # upper bound for k in range
         k_vals = jnp.arange(0, k_max + 1)
@@ -72,7 +53,7 @@ def F_j(theta_j: float, j: int, d: int) -> Array:
         return prefactor - C_j * jnp.cos(theta_j) * sum_terms
 
     def F_even(_):
-        C_j = (1 / jnp.pi) * double_factorial_ratio(dj - 1, dj - 2)
+        C_j = (1 / jnp.pi) * double_factorial_ratio_scipy(dj - 1, dj - 2)
         prefactor = C_j * numoverden * theta_j
         k_max = (dj - 1) // 2
         k_vals = jnp.arange(1, k_max + 1)

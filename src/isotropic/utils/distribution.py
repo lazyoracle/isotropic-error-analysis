@@ -2,9 +2,29 @@
 
 import jax.numpy as jnp
 from jax import Array
+from scipy.special import factorial2
 
 
-def double_factorial(n: int) -> Array:
+def double_factorial_ratio_scipy(num: int, den: int) -> float:
+    """
+    Compute the ratio of double factorials num!! / den!!.
+
+    Parameters
+    ----------
+    num : int
+        The numerator double factorial.
+    den : int
+        The denominator double factorial.
+
+    Returns
+    -------
+    float
+        The ratio of the double factorials.
+    """
+    return factorial2(num) / factorial2(den)
+
+
+def double_factorial_jax(n: int) -> Array:
     """
     Helper function to compute double factorial:
 
@@ -24,7 +44,7 @@ def double_factorial(n: int) -> Array:
     return jnp.where(n <= 0, 1, jnp.prod(jnp.arange(n, 0, -2, dtype=jnp.uint64)))
 
 
-def double_factorial_ratio(num: int, den: int) -> Array:
+def double_factorial_ratio_jax(num: int, den: int) -> Array:
     """
     Computes the ratio of double factorials:
 
@@ -101,8 +121,8 @@ def normal_integrand(theta: float, d: int, sigma: float) -> Array:
     # sigma = jnp.asarray(sigma)
 
     # factorial components
-    numerator_factorial = double_factorial(d - 1)
-    denominator_factorial = double_factorial(d - 2)
+    numerator_factorial = factorial2(d - 1)
+    denominator_factorial = factorial2(d - 2)
 
     # Numerator components
     one_minus_sigma_sq = 1.0 - sigma**2
