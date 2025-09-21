@@ -15,5 +15,5 @@ pip install -e .\[all\]
 
 ### Run notebooks
 ```bash
-jupyter notebook notebooks/01_isotropic_error_perturbation.ipynb
+jupyter notebook notebooks/
 ```
