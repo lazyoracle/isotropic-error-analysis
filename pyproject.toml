@@ -20,11 +20,17 @@ dev = [
     "matplotlib>=3.10.6",
     "mypy>=1.17.0",
     "pre-commit>=4.2.0",
+    "pylatexenc>=2.10",
     "pytest>=8.4.1",
     "pytest-cov>=6.2.1",
     "pytest-xdist>=3.8.0",
     "ruff>=0.12.5",
 ]
+algo = [
+    "qiskit~=1.2.4",
+    "qiskit-aer==0.15.1",
+]
+all = ["isotropic[dev,algo]"]
 
 [tool.ruff]
 # Exclude a variety of commonly ignored directories.
