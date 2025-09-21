@@ -20,7 +20,8 @@ def statevector_to_hypersphere(Phi: Array) -> Array:
     Array
         hypersphere as a real JAX array of dimension 2^{n+1}
     """
-    S = jnp.zeros((2 ** (jnp.log2(Phi.shape[0]).astype(int) + 1),), dtype=float)
+    breakpoint()
+    S = jnp.zeros(int(2 ** (log(Phi.shape[0], 2) + 1)), dtype=float)
     for x in range(S.shape[0] // 2):
         S = S.at[2 * x].set(Phi[x].real)
         S = S.at[2 * x + 1].set(Phi[x].imag)
