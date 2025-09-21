@@ -15,7 +15,7 @@ from isotropic.utils.state_transforms import (
 def test_add_isotropic_error():
     Phi = jnp.ones(4, dtype=complex)
     Phi = Phi / jnp.linalg.norm(Phi)
-    Phi_spherical = statevector_to_hypersphere(Phi)  # d+1 = 4
+    Phi_spherical = statevector_to_hypersphere(Phi)
     basis = get_orthonormal_basis(
         Phi_spherical
     )  # gives d vectors with d+1 elements each
@@ -32,7 +32,7 @@ def test_add_isotropic_error():
     )
 
     def g(theta):
-        return normal_integrand(theta, d=Phi_spherical.shape[0], sigma=0.6)
+        return normal_integrand(theta, d=Phi_spherical.shape[0], sigma=0.96)
 
     theta_zero = get_theta_zero(x=0.5, g=g)
     Psi_spherical = add_isotropic_error(Phi_spherical, e2=e2, theta_zero=theta_zero)
