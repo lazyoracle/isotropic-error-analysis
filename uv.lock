@@ -785,6 +785,7 @@ version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
     { name = "jax" },
+    { name = "scipy" },
 ]
 
 [package.optional-dependencies]
@@ -814,6 +815,7 @@ requires-dist = [
     { name = "pytest-cov", marker = "extra == 'dev'", specifier = ">=6.2.1" },
     { name = "pytest-xdist", marker = "extra == 'dev'", specifier = ">=3.8.0" },
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.12.5" },
+    { name = "scipy", specifier = ">=1.16.0" },
 ]
 provides-extras = ["dev"]
 
