@@ -20,7 +20,18 @@ def double_factorial_ratio_scipy(num: int, den: int) -> float:
     -------
     float
         The ratio of the double factorials.
+
+    Notes
+    -----
+    This only works for numbers up to 300.
+
+    Raises
+    ------
+    ValueError
+        If num or den is greater than 300.
     """
+    if num > 300 or den > 300:
+        raise ValueError("This only works for numbers up to 300")
     return factorial2(num) / factorial2(den)
 
 
