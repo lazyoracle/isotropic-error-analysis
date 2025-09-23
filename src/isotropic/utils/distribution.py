@@ -80,7 +80,7 @@ def double_factorial_ratio_jax(num: int, den: int) -> Array:
     For very large numbers, this is numerically stable only when |num - den| is ~5.
     """
     warnings.warn(
-        "This is an experimental implementation. There are known issues when with using this for numbers larger than 2**8",
+        "This is an experimental implementation. There are known issues with using this for numbers larger than 2**8",
         UserWarning,
     )
     if abs(num - den) > 4:

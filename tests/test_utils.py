@@ -1,4 +1,5 @@
 import jax.numpy as jnp
+import pytest
 from scipy.linalg import null_space
 from scipy.special import factorial2
 
@@ -6,6 +7,7 @@ from isotropic.utils.bisection import get_theta
 from isotropic.utils.distribution import (
     double_factorial_jax,
     double_factorial_ratio_jax,
+    double_factorial_ratio_scipy,
     normal_integrand,
 )
 from isotropic.utils.linalg import jax_null_space
@@ -98,6 +100,14 @@ def test_double_factorial_ratio_jax():
     assert jnp.isclose(ratio_received, ratio_expected), (
         f"Expected {ratio_expected}, got {ratio_received}"
     )
+
+    with pytest.raises(ValueError):  # check for error on inputs not close enough
+        _ = double_factorial_ratio_jax(300, 290)
+
+
+def test_double_factorial_ratio_scipy():
+    with pytest.raises(ValueError):
+        _ = double_factorial_ratio_scipy(302, 301)
 
 
 def test_normal_integrand():

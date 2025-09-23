@@ -77,7 +77,7 @@ def get_grover_answer(result: PrimitiveResult) -> tuple[dict, str]:
         A tuple containing the counts dictionary and the most probable search item.
     """
     if not isinstance(result, PrimitiveResult):
-        raise ValueError("The result must be an instance of PrimitiveResult.")
+        raise TypeError("The result must be an instance of PrimitiveResult.")
 
     counts = result[0].data.c0.get_counts()
     grover_answer = max(counts, key=counts.get)
