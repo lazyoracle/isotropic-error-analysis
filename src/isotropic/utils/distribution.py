@@ -1,5 +1,7 @@
 """This module contains functions for relevant probability distributions"""
 
+import warnings
+
 import jax.numpy as jnp
 from jax import Array
 from scipy.special import factorial2
@@ -77,6 +79,10 @@ def double_factorial_ratio_jax(num: int, den: int) -> Array:
     -----
     For very large numbers, this is numerically stable only when |num - den| is ~5.
     """
+    warnings.warn(
+        "This is an experimental implementation. There are known issues when with using this for numbers larger than 2**8",
+        UserWarning,
+    )
     if abs(num - den) > 4:
         raise ValueError("num and den should be close to each other")
     num_elems = jnp.arange(num, 0, -2, dtype=jnp.uint64)
