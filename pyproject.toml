@@ -28,7 +28,7 @@ dev = [
 ]
 algo = [
     "qiskit~=1.2.4",
-    "qiskit-aer==0.15.1",
+    "qiskit-aer~=0.15.1",
 ]
 all = ["isotropic[dev,algo]"]
 docs = [
