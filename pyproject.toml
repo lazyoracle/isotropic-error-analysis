@@ -31,6 +31,11 @@ algo = [
     "qiskit-aer==0.15.1",
 ]
 all = ["isotropic[dev,algo]"]
+docs = [
+    "mkdocs>=1.6.1",
+    "mkdocs-material>=9.6.20",
+    "mkdocstrings-python>=1.18.2",
+]
 
 [tool.ruff]
 # Exclude a variety of commonly ignored directories.
