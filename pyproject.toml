@@ -4,7 +4,7 @@ authors = [
     { name = "Anurag Saha Roy", email = "contact@anuragsaharoy.me"}]
 version = "0.4.0"
 license = "Apache-2.0"
-description = "Analysis of isotropic errors in QC algorithms"
+description = "A Python package for isotropic error analysis in quantum computing"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
