@@ -21,8 +21,9 @@ def jax_null_space(A: ArrayLike) -> Array:
     Notes
     ------
     See also:
+
     - `scipy.linalg.null_space` for the reference implementation in SciPy.
-    - https://github.com/jax-ml/jax/pull/14486 for an old JAX implementation.
+    - [https://github.com/jax-ml/jax/pull/14486](https://github.com/jax-ml/jax/pull/14486) for an old JAX implementation.
     """
     u, s, vh = svd(A, full_matrices=True)
     M, N = u.shape[0], vh.shape[1]
