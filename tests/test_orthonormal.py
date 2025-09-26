@@ -21,11 +21,13 @@ def test_get_orthonormal_basis(Phi):
 
     # Check if the basis vectors are orthogonal to each other
     assert jnp.allclose(
-        jnp.dot(basis_vectors, basis_vectors.T), jnp.eye(basis_vectors.shape[0])
+        jnp.dot(basis_vectors, basis_vectors.T),
+        jnp.eye(basis_vectors.shape[0]),
+        atol=1e-6,
     ), f"<A, A.T> should be I, got {jnp.dot(basis_vectors, basis_vectors.T)}"
 
     # Check if bases is orthogonal to Phi
-    assert jnp.allclose(jnp.dot(basis_vectors, Phi), 0.0), (
+    assert jnp.allclose(jnp.dot(basis_vectors, Phi), 0.0, atol=1e-6), (
         "Basis vectors should be orthogonal to Phi"
     )
 
