@@ -1,4 +1,4 @@
-"""This module contains functions for generating theta_0."""
+"""This module contains functions for generating $\\theta_0$."""
 
 from typing import Callable
 

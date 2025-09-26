@@ -11,9 +11,23 @@ Broadly this involves the following steps:
 $$\Psi = \Phi \cos(\theta_0) + e_2 \sin(\theta_0)$$
 
 
-This library provides modules to perform each of the above steps. See below for the API reference.
+## Installation
+
+You can install `isotropic` from `pip` with:
+
+```bash
+pip install isotropic
+```
+
+If you want to test the effect of isotropic errors with one of the included quantum algorithm implementations, consider installing with the `all` option as such:
+
+```bash
+pip install isotropic\[all\]
+```
 
 ## API Reference
+
+This library provides modules to perform each of the steps outlined above. See below for the API reference:
 
 - [Algorithms](algos.md)
 - [Coefficients of e2](e2.md)

@@ -1,4 +1,5 @@
 site_name: "isotropic"
+repo_url: https://github.com/lazyoracle/isotropic-error-analysis
 
 theme:
   name: "material"
@@ -8,10 +9,10 @@ theme:
     - content.tabs.link
     - navigation.indexes
     - navigation.footer
-    - navigation.tabs
     - navigation.top
     - search.highlight
     - search.suggest
+    - toc.follow
   language: en
   palette:
     - scheme: default
