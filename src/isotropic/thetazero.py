@@ -12,22 +12,22 @@ from isotropic.utils.simpsons import simpsons_rule
 
 def get_theta_zero(x: ArrayLike, g: Callable) -> float:
     """
-    Calculate the inverse angle theta_0 with a normal distribution given a value x.
+    Calculate the inverse angle $\\theta_0$ with a normal distribution given a value x.
 
-    This function finds the angle theta_0 such that the integral of g from 0 to theta_0 equals x.
+    This function finds the angle $\\theta_0$ such that the integral of g from 0 to $\\theta_0$ equals x.
     It uses Simpson's rule for numerical integration and a bisection method to find the root.
 
     Parameters
     ----------
     x : ArrayLike
-        Value for which to find the inverse, should be uniformly distributed in [0, 1].
+        Value for which to find the inverse, should be uniformly distributed in $[0, 1]$.
     g : Callable
-        Function g(theta) that is integrated to calculate F(theta).
+        Function $g(\\theta)$ that is integrated to calculate $F(\\theta)$.
 
     Returns
     -------
     float
-        Value of theta_0.
+        Value of $\\theta_0$.
     """
 
     # We wrap the function g into a callable F that integrates g from 0 to theta.

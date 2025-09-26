@@ -77,7 +77,7 @@ def double_factorial_ratio_jax(num: int, den: int) -> Array:
 
     Notes
     -----
-    For very large numbers, this is numerically stable only when |num - den| is ~5.
+    For very large numbers, this is numerically stable only when |num - den| ~5.
     """
     warnings.warn(
         "This is an experimental implementation. There are known issues with using this for numbers larger than 2**8",
@@ -115,7 +115,7 @@ def normal_integrand(theta: float, d: int, sigma: float) -> Array:
     Computes the function g(θ) that is integrated to calculate F(θ) which is the
     distribution function for the angle θ in a normal distribution:
 
-        g(θ) = [(d-1)!! * (1-σ²) * sin^(d-1)(θ)] / [π * (d-2)!! * (1+σ²-2σcos(θ))^((d+1)/2)]
+    $$g(\\theta) = \\frac{(d-1)!! \\times (1-\\sigma^2) \\times \\sin^{d-1}(\\theta)}{\\pi \\times (d-2)!! \\times (1+\\sigma^2-2\\sigma\\cos(\\theta))^{(d+1)/2}}$$
 
     Parameters
     ----------

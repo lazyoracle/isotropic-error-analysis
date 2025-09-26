@@ -6,7 +6,7 @@ from jax.typing import ArrayLike
 
 def jax_null_space(A: ArrayLike) -> Array:
     """
-    Compute the null space of a matrix A using JAX.
+    Compute the null space of a matrix $A$ using JAX.
 
     Parameters
     ----------

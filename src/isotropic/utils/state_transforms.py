@@ -15,17 +15,17 @@ from isotropic.utils.distribution import normal_integrand
 
 def statevector_to_hypersphere(Phi: Array) -> Array:
     """
-    Generate the hypersphere Phi from statevector Psi
+    Generate the hypersphere from statevector $\\Phi$
 
     Parameters
     ----------
-    psi: ArrayLike
-        statevector as a complex JAX array of dimension 2^n, for n-qubits
+    Phi: ArrayLike
+        statevector as a complex JAX array of dimension $2^n$, for n-qubits
 
     Returns
     -------
     Array
-        hypersphere as a real JAX array of dimension 2^{n+1}
+        hypersphere as a real JAX array of dimension $2^{n+1}$
     """
     S = jnp.zeros(int(2 ** (log(Phi.shape[0], 2) + 1)), dtype=float)
     for x in range(S.shape[0] // 2):
@@ -36,17 +36,17 @@ def statevector_to_hypersphere(Phi: Array) -> Array:
 
 def hypersphere_to_statevector(S: Array) -> Array:
     """
-    Generate the statevector Psi from hypersphere Phi
+    Generate the statevector $\\Phi$ from hypersphere $S$
 
     Parameters
     ----------
     S: ArrayLike
-        hypersphere as a real JAX array of dimension 2^{n+1} for n qubits
+        hypersphere as a real JAX array of dimension $2^{n+1}$ for n qubits
 
     Returns
     -------
     Array
-        statevector as a complex JAX array of dimension 2^n
+        statevector as a complex JAX array of dimension $2^n$
     """
     Phi = jnp.zeros(int(2 ** (log(S.shape[0], 2) - 1)), dtype=complex)
     for x in range(Phi.shape[0]):
@@ -56,16 +56,16 @@ def hypersphere_to_statevector(S: Array) -> Array:
 
 def add_isotropic_error(Phi_sp: Array, e2: Array, theta_zero: float) -> Array:
     """
-    Add isotropic error to state Phi given e2 and theta_zero
+    Add isotropic error to state $\\Phi$ given $e_2$ and $\\theta_0$
 
     Parameters
     ----------
     Phi_sp : ArrayLike
         state to which isotropic error is added (in spherical form)
     e2 : ArrayLike
-        vector e2 in S_{d-1} with uniform distribution
+        vector $e_2$ in $S_{d-1}$ with uniform distribution
     theta_zero : float
-        angle θ_0 in [0,π] with density function f(θ_0)
+        angle $\\theta_0$ in $[0,\\pi]$ with density function $f(\\theta_0)$
 
     Returns
     -------
@@ -87,7 +87,7 @@ def generate_and_add_isotropic_error(
     Parameters
     ----------
     Phi : ArrayLike
-        The input statevector as a complex JAX array of dimension 2^n, for n-qubits.
+        The input statevector as a complex JAX array of dimension $2^n$, for n-qubits.
     sigma : float, optional
         The standard deviation for the isotropic error, by default 0.9.
     key : ArrayLike, optional

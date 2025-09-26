@@ -1,4 +1,4 @@
-"""This module contains functions for generating the vector e_2."""
+"""This module contains functions for generating the vector $e_2$."""
 
 from typing import Callable, Tuple
 
@@ -13,7 +13,7 @@ from isotropic.utils.distribution import double_factorial_ratio_scipy
 
 def F_j(theta_j: float, j: int, d: int) -> Array:
     """
-    Calculate the function F_j for the given angle theta_j and index j in dimension d.
+    Calculate the function $F_j$ for the given angle $\\theta_j$ and index $j$ in dimension $d$.
 
     Parameters
     ----------
@@ -27,7 +27,7 @@ def F_j(theta_j: float, j: int, d: int) -> Array:
     Returns
     -------
     Array
-        The value of the function F_j evaluated at theta_j.
+        The value of the function $F_j$ evaluated at $\\theta_j$.
     """
     dj = d - j
     numoverden = double_factorial_ratio_scipy(dj - 2, dj - 1)
@@ -84,14 +84,14 @@ def get_e2_coeffs(
     d: int, F_j: Callable, key: ArrayLike = random.PRNGKey(0)
 ) -> Tuple[Array, Array]:
     """
-    Generate the vector e_2 in R^d.
+    Generate the coefficients of the vector $e_2$.
 
     Parameters
     ----------
     d : int
         Dimension of the space.
     F_j : Callable
-        Function to compute F_j for the given angle, dimension and index.
+        Function to compute $F_j$ for the given angle, dimension and index.
     key : ArrayLike, optional
         Random key for reproducibility, by default random.PRNGKey(0).
 
@@ -99,8 +99,9 @@ def get_e2_coeffs(
     -------
     Tuple[Array, Array]
         A tuple containing:
-        - theta: Array of angles used to construct e_2.
-        - e2: Array representing the vector e_2 in R^d.
+
+        - theta: Array of angles used to construct $e_2$.
+        - e2: Array representing the coefficients of the vector $e_2$.
     """
     theta: Array = jnp.zeros(d - 1)
 

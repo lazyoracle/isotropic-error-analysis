@@ -9,10 +9,10 @@ from isotropic.utils.linalg import jax_null_space
 
 def get_orthonormal_basis(Phi: ArrayLike) -> Array:
     """
-    Construct an orthonormal basis given a point Φ on a unit sphere.
+    Construct an orthonormal basis given a point $\\Phi$ on a unit sphere.
 
-    The point Φ is given by a d+1 dimensional vector and the orthonormal basis consists of d vectors
-    each of dimension d+1, which are orthogonal to Φ and to each other.
+    The point $\\Phi$ is given by a d+1 dimensional vector and the orthonormal basis consists of d vectors
+    each of dimension d+1, which are orthogonal to $\\Phi$ and to each other.
 
     Parameters
     ----------
