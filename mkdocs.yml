@@ -34,6 +34,15 @@ plugins:
           show_root_heading: true
           show_symbol_type_toc: true
           docstring_style: numpy
+- mike:
+    # These fields are all optional; the defaults are as below...
+    alias_type: symlink
+    redirect_template: null
+    deploy_prefix: ''
+    canonical_version: null
+    version_selector: true
+    css_dir: css
+    javascript_dir: js
 
 extra_css:
   - https://cdn.jsdelivr.net/npm/katex@0/dist/katex.min.css
@@ -51,3 +60,8 @@ nav:
     - orthonormal: orthonormal.md
     - thetazero: thetazero.md
     - utils: utils.md
+
+extra:
+  version:
+    provider: mike
+    default: latest
