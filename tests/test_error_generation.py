@@ -9,9 +9,7 @@ def test_add_isotropic_error():
     Phi = Phi / jnp.linalg.norm(Phi)
 
     Psi = generate_and_add_isotropic_error(
-        Phi=Phi,
-        sigma=0.9,
-        key=jax.random.PRNGKey(0),
+        Phi=Phi, sigma=0.9, key=jax.random.PRNGKey(0)
     )
 
     # normalization check

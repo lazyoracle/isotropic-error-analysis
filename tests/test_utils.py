@@ -1,13 +1,17 @@
+import os
+from glob import glob
+
 import jax.numpy as jnp
-import pytest
+import xarray as xr
 from scipy.linalg import null_space
 from scipy.special import factorial2
+from typer.testing import CliRunner
 
 from isotropic.utils.bisection import get_theta
+from isotropic.utils.data_generation import app
 from isotropic.utils.distribution import (
     double_factorial_jax,
-    double_factorial_ratio_jax,
-    double_factorial_ratio_scipy,
+    double_factorial_ratio,
     normal_integrand,
 )
 from isotropic.utils.linalg import jax_null_space
@@ -16,6 +20,41 @@ from isotropic.utils.state_transforms import (
     hypersphere_to_statevector,
     statevector_to_hypersphere,
 )
+
+
+def test_cli():
+    # add a test for the CLI using typer's testing utilities
+    runner = CliRunner()
+    result = runner.invoke(
+        app,
+        [
+            "--num-qubits",
+            "3",
+            "--min-iterations",
+            "2",
+            "--max-iterations",
+            "2",
+            "--min-sigma",
+            "0.9",
+            "--max-sigma",
+            "0.95",
+            "--num-sigma-points",
+            "2",
+            "--num-jobs",
+            "1",
+            "--data-dir",
+            "test_data",
+        ],
+    )
+    assert result.exit_code == 0, f"CLI failed with error: {result.output}"
+    # Check if files are created
+    files = glob(os.path.join("test_data", "*.nc"))
+    assert len(files) > 0, "No data files created by CLI"
+    # Check if the file has the expected structure
+    ds = xr.open_dataset(files[0])
+    assert "num_qubits" in ds.attrs, "num_qubits attribute missing"
+    assert "iterations" in ds.data_vars, "iterations dimension missing"
+    assert "sigma" in ds.coords, "sigma dimension missing"
 
 
 def test_simpsons_rule():
@@ -86,28 +125,20 @@ def test_double_factorial_jax():
     )
 
 
-def test_double_factorial_ratio_jax():
+def test_double_factorial_ratio():
     num, den = (2**8) - 1, (2**8) - 2
-    ratio_received = double_factorial_ratio_jax(num, den)
+    ratio_received = double_factorial_ratio(num, den)
     ratio_expected = factorial2(num) / factorial2(den)
     assert jnp.isclose(ratio_received, ratio_expected), (
         f"Expected {ratio_expected}, got {ratio_received}"
     )
 
     num, den = (2**8) - 3, (2**8) - 1
-    ratio_received = double_factorial_ratio_jax(num, den)
+    ratio_received = double_factorial_ratio(num, den)
     ratio_expected = factorial2(num) / factorial2(den)
     assert jnp.isclose(ratio_received, ratio_expected), (
         f"Expected {ratio_expected}, got {ratio_received}"
     )
-
-    with pytest.raises(ValueError):  # check for error on inputs not close enough
-        _ = double_factorial_ratio_jax(300, 290)
-
-
-def test_double_factorial_ratio_scipy():
-    with pytest.raises(ValueError):
-        _ = double_factorial_ratio_scipy(302, 301)
 
 
 def test_normal_integrand():

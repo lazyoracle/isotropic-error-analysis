@@ -4,11 +4,12 @@ from typing import Callable, Tuple
 
 import jax.numpy as jnp
 import jax.random as random
+import numpy as np
 from jax import Array
 from jax.typing import ArrayLike
 
 from isotropic.utils.bisection import get_theta
-from isotropic.utils.distribution import double_factorial_ratio_scipy
+from isotropic.utils.distribution import double_factorial_ratio
 
 
 def F_j(theta_j: float, j: int, d: int) -> Array:
@@ -30,47 +31,58 @@ def F_j(theta_j: float, j: int, d: int) -> Array:
         The value of the function $F_j$ evaluated at $\\theta_j$.
     """
     dj = d - j
-    numoverden = double_factorial_ratio_scipy(dj - 2, dj - 1)
 
     def F_odd(_):
-        C_j = (1 / 2) * double_factorial_ratio_scipy(dj - 1, dj - 2)
-        prefactor = C_j * numoverden
+        C_j = (1 / 2) * double_factorial_ratio(dj - 1, dj - 2)
+        prefactor = 1 / 2
         k_max = (dj - 2) // 2  # upper bound for k in range
-        k_vals = jnp.arange(0, k_max + 1)
+        k_vals = np.arange(0, k_max + 1)
 
         def product_term(k):
-            num_factors = jnp.arange(dj - 2, 2 * k + 1, -2)
-            den_factors = jnp.arange(dj - 1, 2 * k, -2)
-            num_prod = jnp.prod(num_factors) if num_factors.size > 0 else 1.0
-            den_prod = jnp.prod(den_factors) if den_factors.size > 0 else 1.0
-            return (num_prod / den_prod) * jnp.sin(theta_j) ** (2 * k)
+            num_list = list(range(d - j - 2, (2 * k + 2) - 1, -2))
+            den_list = list(range(d - j - 1, (2 * k + 1) - 1, -2))
+            # make sure both lists are the same length by padding the shorter one with 1s
+            max_len = max(len(num_list), len(den_list))
+            num_list += [1] * (max_len - len(num_list))
+            den_list += [1] * (max_len - len(den_list))
+            num_array = np.array(num_list)
+            den_array = np.array(den_list)
 
-        # TODO: Use vectorization for better performance
-        # sum_terms = jnp.sum(jnp.vectorize(product_term)(k_vals))
-        sum_terms = 0.0
-        for k in k_vals:
-            sum_terms += product_term(k)
-        return prefactor - C_j * jnp.cos(theta_j) * sum_terms
+            def ratio(a, b):
+                return a / b
+
+            result_array = np.vectorize(ratio)(num_array, den_array)
+            fraction = np.prod(result_array)
+            return fraction * jnp.sin(theta_j) ** (2 * k)
+
+        sum_terms = np.vectorize(product_term)(k_vals).sum()
+        return prefactor - (C_j * jnp.cos(theta_j) * sum_terms)
 
     def F_even(_):
-        C_j = (1 / jnp.pi) * double_factorial_ratio_scipy(dj - 1, dj - 2)
-        prefactor = C_j * numoverden * theta_j
+        C_j = (1 / jnp.pi) * double_factorial_ratio(dj - 1, dj - 2)
+        prefactor = theta_j / jnp.pi
         k_max = (dj - 1) // 2
-        k_vals = jnp.arange(1, k_max + 1)
+        k_vals = np.arange(1, k_max + 1)
 
         def product_term(k):
-            num_factors = jnp.arange(dj - 2, 2 * k, -2)
-            den_factors = jnp.arange(dj - 1, 2 * k - 1, -2)
-            num_prod = jnp.prod(num_factors) if num_factors.size > 0 else 1.0
-            den_prod = jnp.prod(den_factors) if den_factors.size > 0 else 1.0
-            return (num_prod / den_prod) * jnp.sin(theta_j) ** (2 * k - 1)
+            num_list = list(range(d - j - 2, (2 * k + 1) - 1, -2))
+            den_list = list(range(d - j - 1, (2 * k) - 1, -2))
+            # make sure both lists are the same length by padding the shorter one with 1s
+            max_len = max(len(num_list), len(den_list))
+            num_list += [1] * (max_len - len(num_list))
+            den_list += [1] * (max_len - len(den_list))
+            num_array = np.array(num_list)
+            den_array = np.array(den_list)
 
-        # TODO: Use vectorization for better performance
-        # sum_terms = jnp.sum(jnp.vectorize(product_term)(k_vals))
-        sum_terms = 0.0
-        for k in k_vals:
-            sum_terms += product_term(k)
-        return prefactor - C_j * jnp.cos(theta_j) * sum_terms
+            def ratio(a, b):
+                return a / b
+
+            result_array = np.vectorize(ratio)(num_array, den_array)
+            fraction = np.prod(result_array)
+            return fraction * jnp.sin(theta_j) ** (2 * k - 1)
+
+        sum_terms = np.vectorize(product_term)(k_vals).sum()
+        return prefactor - (C_j * jnp.cos(theta_j) * sum_terms)
 
     # TODO: Use a conditional to choose between F_odd and F_even based on j
     # return lax.cond(j % 2 == 1, F_odd, F_even, operand=None)

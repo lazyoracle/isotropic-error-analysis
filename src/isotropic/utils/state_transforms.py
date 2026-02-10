@@ -79,7 +79,9 @@ def add_isotropic_error(Phi_sp: Array, e2: Array, theta_zero: float) -> Array:
 
 
 def generate_and_add_isotropic_error(
-    Phi: ArrayLike, sigma: float = 0.9, key: ArrayLike = random.PRNGKey(0)
+    Phi: ArrayLike,
+    sigma: float = 0.9,
+    key: ArrayLike = random.PRNGKey(0),
 ) -> Array:
     """
     Generate and add isotropic error to a given statevector.
@@ -98,11 +100,13 @@ def generate_and_add_isotropic_error(
     Array
         The perturbed statevector after adding isotropic error.
     """
+    # Set up logging
+
     Phi_spherical = statevector_to_hypersphere(Phi)
     basis = get_orthonormal_basis(
         Phi_spherical
     )  # gives d vectors with d+1 elements each
-    _, coeffs = get_e2_coeffs(
+    theta, coeffs = get_e2_coeffs(
         d=basis.shape[0],  # gives d coefficients for the d vectors above
         F_j=F_j,
         key=key,

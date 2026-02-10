@@ -1,40 +1,8 @@
 """This module contains functions for relevant probability distributions"""
 
-import warnings
-
 import jax.numpy as jnp
+import numpy as np
 from jax import Array
-from scipy.special import factorial2
-
-
-def double_factorial_ratio_scipy(num: int, den: int) -> float:
-    """
-    Compute the ratio of double factorials num!! / den!!.
-
-    Parameters
-    ----------
-    num : int
-        The numerator double factorial.
-    den : int
-        The denominator double factorial.
-
-    Returns
-    -------
-    float
-        The ratio of the double factorials.
-
-    Notes
-    -----
-    This only works for numbers up to 300.
-
-    Raises
-    ------
-    ValueError
-        If num or den is greater than 300.
-    """
-    if num > 300 or den > 300:
-        raise ValueError("This only works for numbers up to 300")
-    return factorial2(num) / factorial2(den)
 
 
 def double_factorial_jax(n: int) -> Array:
@@ -57,57 +25,37 @@ def double_factorial_jax(n: int) -> Array:
     return jnp.where(n <= 0, 1, jnp.prod(jnp.arange(n, 0, -2, dtype=jnp.uint64)))
 
 
-def double_factorial_ratio_jax(num: int, den: int) -> Array:
+def double_factorial_ratio(num: int, den: int) -> float:
     """
-    Computes the ratio of double factorials:
-
-        num!! / den!!
+    Compute the ratio of double factorials num!! / den!!
+    using vectorized operations for efficiency.
 
     Parameters
     ----------
     num : int
-        The numerator for the double factorial.
+        The numerator double factorial.
     den : int
-        The denominator for the double factorial.
+        The denominator double factorial.
 
     Returns
     -------
-    Array
-        The value of the ratio num!! / den!!
-
-    Notes
-    -----
-    For very large numbers, this is numerically stable only when |num - den| ~5.
+    float
+        The ratio num!! / den!!
     """
-    warnings.warn(
-        "This is an experimental implementation. There are known issues with using this for numbers larger than 2**8",
-        UserWarning,
-    )
-    if abs(num - den) > 4:
-        raise ValueError("num and den should be close to each other")
-    num_elems = jnp.arange(num, 0, -2, dtype=jnp.uint64)
-    den_elems = jnp.arange(den, 0, -2, dtype=jnp.uint64)
+    num_list = list(range(num, 0, -2))
+    den_list = list(range(den, 0, -2))
+    # make sure both lists are the same length by padding the shorter one with 1s
+    max_len = max(len(num_list), len(den_list))
+    num_list += [1] * (max_len - len(num_list))
+    den_list += [1] * (max_len - len(den_list))
+    num_array = np.array(num_list)
+    den_array = np.array(den_list)
 
-    len_diff = den_elems.shape[0] - num_elems.shape[0]
+    def ratio(a, b):
+        return a / b
 
-    # Ensure both num_elems and den_elems have the same length
-    if len_diff > 0:
-        num_elems = jnp.concatenate((num_elems, jnp.ones(len_diff, dtype=jnp.uint64)))
-    else:
-        den_elems = jnp.concatenate((den_elems, jnp.ones(-len_diff, dtype=jnp.uint64)))
-
-    num_len = num_elems.shape[0]
-    den_len = den_elems.shape[0]
-
-    ratio_elems = jnp.zeros(num_len // 2)
-
-    for k in jnp.arange(0, num_len // 2, 1):
-        ratio_elems = ratio_elems.at[k].set(
-            (num_elems[k] * num_elems[num_len - 1 - k])
-            / (den_elems[k] * den_elems[den_len - 1 - k])
-        )
-    ratio = jnp.prod(ratio_elems)
-    return ratio
+    result_array = np.vectorize(ratio)(num_array, den_array)
+    return np.prod(result_array)
 
 
 def normal_integrand(theta: float, d: int, sigma: float) -> Array:
@@ -132,14 +80,8 @@ def normal_integrand(theta: float, d: int, sigma: float) -> Array:
         Value(s) of the function evaluated at `theta`.
     """
 
-    # TODO: Convert inputs to JAX arrays once @jit works
-    # theta = jnp.asarray(theta)
-    # d = jnp.asarray(d, dtype=jnp.int32)
-    # sigma = jnp.asarray(sigma)
-
-    # factorial components
-    numerator_factorial = factorial2(d - 1)
-    denominator_factorial = factorial2(d - 2)
+    # factorial ratio
+    factorial_ratio = double_factorial_ratio(d - 1, d - 2)
 
     # Numerator components
     one_minus_sigma_sq = 1.0 - sigma**2
@@ -150,9 +92,10 @@ def normal_integrand(theta: float, d: int, sigma: float) -> Array:
     denominator_power = jnp.power(denominator_base, (d + 1) / 2.0)
 
     # Combine all terms
-    numerator = numerator_factorial * one_minus_sigma_sq * sin_theta_power
-    denominator = jnp.pi * denominator_factorial * denominator_power
-
-    result = numerator / denominator
+    result = (
+        factorial_ratio
+        * (one_minus_sigma_sq * sin_theta_power)
+        / (jnp.pi * denominator_power)
+    )
 
     return result
