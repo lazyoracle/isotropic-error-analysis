@@ -43,7 +43,7 @@ If you want to build and view the documentation locally, follow the steps below:
 
 ## Executive summary of concepts
 
-In quantum error models, isotropic errors are those that affect all states of the system equally, without a preferred direction in Hilbert space. For example, depolarizing noise is isotropic. A depolarizing channel replaces a qubit state with the maximally mixed state with some probability $p$. No basis or axis is privileged. The error distribution is thus uniform over possible error directions. On the other hand, independent errors are assumed to act locally and independently across different qubits or gates. For example, an independent bit-flip error model applies an $X$ operator to each qubit with probability $p$, independently of what happens to other qubits. In this case, errors are uncorrelated across subsystems.
+Isotropic errors [[Lacalle2019](https://doi.org/10.26421/QIC19.15-16-3)], are characterized by their rotational symmetry around quantum states in the high-dimensional Hilbert space representation. Unlike conventional error models that typically affect specific components of quantum states in predictable ways, isotropic errors maintain equal probability of occurrence in all directions around the original quantum state. Recent work [[Lacalle2021](https://doi.org/10.1007/s11128-020-02980-3)] has demonstrated that quantum codes cannot effectively correct isotropic errors, regardless of the specific code construction or encoding strategy employed.
 
 In order to model the effect of an isotropic error on a quantum state $\Phi$, we follow the steps outlined below:
 
@@ -58,7 +58,7 @@ Once we have a recipe for adding an isotropic error to a quantum state, we can s
 
 1. What system sizes can be analysed?
 
-    Currently this is tested for systems with up to 7 qubits. The error generation requires the calculation of a double factorial ratio, which becomes intractable at larger system sizes unless some nifty tricks are applied. There is an experimental implementation of double factorial ratio for larger numbers, but this is somewhat buggy and not yet thoroughly tested
+    Currently this is tested for systems with up to 7 qubits. There are some open issues with calculation of the error for higher system sizes.
 
 2. What algorithms can be analysed?
 
