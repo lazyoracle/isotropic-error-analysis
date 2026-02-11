@@ -3,6 +3,8 @@ This module contains functions to generate data for Grover's algorithm
 with isotropic error and save it in xarray format.
 """
 
+import sys
+
 import jax.numpy as jnp
 import typer
 import xarray as xr
@@ -24,11 +26,11 @@ from isotropic.utils.state_transforms import (
 
 # TODO: add an algo parameter which for now only supports "grover"
 def generate_data(
-    num_qubits: int = 4,
-    min_iterations: int = 3,
-    max_iterations: int = 3,
-    min_sigma: float = 0.85,
-    max_sigma: float = 0.99,
+    num_qubits: int,
+    min_iterations: int,
+    max_iterations: int,
+    min_sigma: float,
+    max_sigma: float,
     num_sigma_points: int = 2,
     num_jobs: int = 2,
     data_dir: str = "data",
@@ -48,12 +50,12 @@ def generate_data(
         Minimum sigma value for isotropic error.
     max_sigma : float
         Maximum sigma value for isotropic error.
-    num_sigma_points : int
-        Number of sigma points to evaluate between min_sigma and max_sigma.
-    num_jobs : int
-        Number of parallel jobs to use for computation.
-    data_dir : str
-        Directory to save the generated data files.
+    num_sigma_points : int, optional
+        Number of sigma points to evaluate between min_sigma and max_sigma. Default is 2.
+    num_jobs : int, optional
+        Number of parallel jobs to use for computation. Default is 2.
+    data_dir : str, optional
+        Directory to save the generated data files. Default is "data".
 
     Returns
     -------
@@ -191,14 +193,18 @@ def run_experiment(
 
 
 def main(
-    num_qubits: int = typer.Option(4, help="Number of qubits."),
-    min_iterations: int = typer.Option(3, help="Minimum number of Grover iterations."),
-    max_iterations: int = typer.Option(3, help="Maximum number of Grover iterations."),
-    min_sigma: float = typer.Option(
-        0.85, help="Minimum sigma value for isotropic error."
+    num_qubits: int = typer.Argument(..., help="Number of qubits."),
+    min_iterations: int = typer.Argument(
+        ..., help="Minimum number of Grover iterations."
     ),
-    max_sigma: float = typer.Option(
-        0.99, help="Maximum sigma value for isotropic error."
+    max_iterations: int = typer.Argument(
+        ..., help="Maximum number of Grover iterations."
+    ),
+    min_sigma: float = typer.Argument(
+        ..., help="Minimum sigma value for isotropic error."
+    ),
+    max_sigma: float = typer.Argument(
+        ..., help="Maximum sigma value for isotropic error."
     ),
     num_sigma_points: int = typer.Option(2, help="Number of sigma points to evaluate."),
     num_jobs: int = typer.Option(2, help="Number of parallel jobs."),
@@ -234,14 +240,12 @@ def main(
 
 
 # for CLI entry point
-def cli():
-    typer.run(main)
-
-
-# for CLI testing
 app = typer.Typer()
 app.command()(main)
 
-# for invoking this script directly
-if __name__ == "__main__":
-    typer.run(main)
+
+def cli():
+    if len(sys.argv) == 1:
+        # No arguments provided, show help and exit
+        sys.argv.append("--help")
+    app()
