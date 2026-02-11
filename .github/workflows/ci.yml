@@ -6,7 +6,7 @@ on:
 permissions:
   contents: write
 jobs:
-   ci:
+   docs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -23,3 +23,21 @@ jobs:
       - run: pip install -e .\[all,docs\]
       - run: pytest -x -vv --cov=src tests/
       - run: mike deploy -u -p ${{ github.ref_name }} latest
+   publish:
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/p/isotropic
+    permissions:
+      id-token: write  # IMPORTANT: this permission is mandatory for trusted publishing
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install build
+      - run: python -m build
+      - name: Publish package distributions to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          skip-existing: true
