@@ -1,6 +1,5 @@
 """
-This module contains functions to generate data for Grover's algorithm
-with isotropic error and save it in xarray format.
+This module generates data for Grover's algorithm with isotropic error.
 """
 
 import sys
@@ -192,7 +191,7 @@ def run_experiment(
     return data
 
 
-def main(
+def main(  # numpydoc ignore=PR01
     num_qubits: int = typer.Argument(..., help="Number of qubits."),
     min_iterations: int = typer.Argument(
         ..., help="Minimum number of Grover iterations."

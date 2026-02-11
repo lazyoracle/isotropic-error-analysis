@@ -19,7 +19,7 @@ def jax_null_space(A: ArrayLike) -> Array:
         The basis vectors of the null space of A.
 
     Notes
-    ------
+    -----
     See also:
 
     - `scipy.linalg.null_space` for the reference implementation in SciPy.

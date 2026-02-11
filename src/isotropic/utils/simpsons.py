@@ -8,7 +8,7 @@ from jax import Array
 
 def simpsons_rule(f: Callable, a: float, b: float, C: float, tol: float) -> Array:
     """
-    Estimates the integral of a function using Simpson's rule.
+    Estimate the integral of a function using Simpson's rule.
 
     Parameters
     ----------

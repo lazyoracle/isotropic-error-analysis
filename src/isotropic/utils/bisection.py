@@ -1,4 +1,4 @@
-"""This module contains functions for the bisection algorithm to calculate $F^{-1}$"""
+"""This module contains functions for the bisection algorithm to calculate $F^{-1}$."""
 
 from typing import Callable
 
@@ -9,12 +9,7 @@ def get_theta(
     F: Callable, a: float, b: float, x: float | ArrayLike, eps: float
 ) -> float:
     """
-    Finds the value of theta such that $F(\\theta) = x$ using the bisection method.
-    This function assumes that $F$ is an increasing function in the interval $[a, b]$
-    and that $F(a) \\leq x \\leq F(b)$.
-
-    The bisection method is a root-finding method that repeatedly bisects an interval
-    and then selects a subinterval in which a root exists.
+    Find the value of theta such that $F(\\theta) = x$ using the bisection method.
 
     Parameters
     ----------
@@ -33,6 +28,12 @@ def get_theta(
     -------
     float
         The value of $theta$ such that $F(\\theta) = x$.
+
+    Notes
+    -----
+    This function assumes that $F$ is an increasing function in the interval $[a, b]$
+    and that $F(a) \\leq x \\leq F(b)$. The bisection method is a root-finding method
+    that repeatedly bisects an interval and then selects a subinterval in which a root exists.
     """
     while b - a > eps:
         c = (a + b) / 2.0

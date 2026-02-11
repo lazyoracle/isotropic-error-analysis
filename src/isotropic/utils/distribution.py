@@ -1,4 +1,4 @@
-"""This module contains functions for relevant probability distributions"""
+"""This module contains functions for relevant probability distributions."""
 
 import jax.numpy as jnp
 import numpy as np
@@ -7,9 +7,7 @@ from jax import Array
 
 def double_factorial_jax(n: int) -> Array:
     """
-    Helper function to compute double factorial:
-
-        n!! = n * (n-2) * (n-4) * ... * 1 (if n is odd) or 2 (if n is even).
+    Helper function to compute double factorial.
 
     Parameters
     ----------
@@ -19,7 +17,13 @@ def double_factorial_jax(n: int) -> Array:
     Returns
     -------
     Array
-        The value of the double factorial n!!
+        The value of the double factorial n!! as a JAX array.
+
+    Notes
+    -----
+    The double factorial is defined as:
+
+        n!! = n * (n-2) * (n-4) * ... * 1 (if n is odd) or 2 (if n is even).
     """
     # works for numbers as large as 9**6
     return jnp.where(n <= 0, 1, jnp.prod(jnp.arange(n, 0, -2, dtype=jnp.uint64)))
@@ -27,8 +31,7 @@ def double_factorial_jax(n: int) -> Array:
 
 def double_factorial_ratio(num: int, den: int) -> float:
     """
-    Compute the ratio of double factorials num!! / den!!
-    using vectorized operations for efficiency.
+    Compute the ratio of double factorials num!! / den!! .
 
     Parameters
     ----------
@@ -40,7 +43,7 @@ def double_factorial_ratio(num: int, den: int) -> float:
     Returns
     -------
     float
-        The ratio num!! / den!!
+        The ratio num!! / den!! .
     """
     num_list = list(range(num, 0, -2))
     den_list = list(range(den, 0, -2))
@@ -60,10 +63,7 @@ def double_factorial_ratio(num: int, den: int) -> float:
 
 def normal_integrand(theta: float, d: int, sigma: float) -> Array:
     """
-    Computes the function g(θ) that is integrated to calculate F(θ) which is the
-    distribution function for the angle θ in a normal distribution:
-
-    $$g(\\theta) = \\frac{(d-1)!! \\times (1-\\sigma^2) \\times \\sin^{d-1}(\\theta)}{\\pi \\times (d-2)!! \\times (1+\\sigma^2-2\\sigma\\cos(\\theta))^{(d+1)/2}}$$
+    Compute the function g(θ).
 
     Parameters
     ----------
@@ -78,6 +78,13 @@ def normal_integrand(theta: float, d: int, sigma: float) -> Array:
     -------
     Array
         Value(s) of the function evaluated at `theta`.
+
+    Notes
+    -----
+    g(θ) is integrated to calculate F(θ) which is the
+    distribution function for the angle θ in a normal distribution:
+
+    $$g(\\theta) = \\frac{(d-1)!! \\times (1-\\sigma^2) \\times \\sin^{d-1}(\\theta)}{\\pi \\times (d-2)!! \\times (1+\\sigma^2-2\\sigma\\cos(\\theta))^{(d+1)/2}}$$.
     """
 
     # factorial ratio
