@@ -2,6 +2,7 @@
 This module generates data for Grover's algorithm with isotropic error.
 """
 
+import os
 import sys
 
 import jax.numpy as jnp
@@ -68,8 +69,6 @@ def generate_data(
     oracle[3][3] = -1
     U_w = Operator(oracle)
     marked_item = "0" * (num_qubits - 2) + "11"
-
-    import os
 
     os.makedirs(data_dir, exist_ok=True)
     for iterations in range(min_iterations, max_iterations + 1):
@@ -191,7 +190,7 @@ def run_experiment(
     return data
 
 
-def main(  # numpydoc ignore=PR01
+def _main(  # numpydoc ignore=PR01
     num_qubits: int = typer.Argument(..., help="Number of qubits."),
     min_iterations: int = typer.Argument(
         ..., help="Minimum number of Grover iterations."
@@ -240,7 +239,7 @@ def main(  # numpydoc ignore=PR01
 
 # for CLI entry point
 app = typer.Typer()
-app.command()(main)
+app.command()(_main)
 
 
 def cli():
