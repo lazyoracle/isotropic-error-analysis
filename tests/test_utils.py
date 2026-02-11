@@ -1,4 +1,5 @@
 import os
+import shutil
 from glob import glob
 
 import jax.numpy as jnp
@@ -24,37 +25,43 @@ from isotropic.utils.state_transforms import (
 
 def test_cli():
     # add a test for the CLI using typer's testing utilities
-    runner = CliRunner()
-    result = runner.invoke(
-        app,
-        [
-            "--num-qubits",
-            "3",
-            "--min-iterations",
-            "2",
-            "--max-iterations",
-            "2",
-            "--min-sigma",
-            "0.9",
-            "--max-sigma",
-            "0.95",
-            "--num-sigma-points",
-            "2",
-            "--num-jobs",
-            "1",
-            "--data-dir",
-            "test_data",
-        ],
-    )
-    assert result.exit_code == 0, f"CLI failed with error: {result.output}"
-    # Check if files are created
-    files = glob(os.path.join("test_data", "*.nc"))
-    assert len(files) > 0, "No data files created by CLI"
-    # Check if the file has the expected structure
-    ds = xr.open_dataset(files[0])
-    assert "num_qubits" in ds.attrs, "num_qubits attribute missing"
-    assert "iterations" in ds.data_vars, "iterations dimension missing"
-    assert "sigma" in ds.coords, "sigma dimension missing"
+    test_dir = "test_data"
+
+    # Clean up test directory if it exists
+    if os.path.exists(test_dir):
+        shutil.rmtree(test_dir)
+
+    try:
+        runner = CliRunner()
+        result = runner.invoke(
+            app,
+            [
+                "3",  # num_qubits
+                "2",  # min_iterations
+                "2",  # max_iterations
+                "0.9",  # min_sigma
+                "0.95",  # max_sigma
+                "--num-sigma-points",
+                "2",
+                "--num-jobs",
+                "1",
+                "--data-dir",
+                test_dir,
+            ],
+        )
+        assert result.exit_code == 0, f"CLI failed with error: {result.output}"
+        # Check if files are created
+        files = glob(os.path.join(test_dir, "*.nc"))
+        assert len(files) > 0, "No data files created by CLI"
+        # Check if the file has the expected structure
+        ds = xr.open_dataset(files[0])
+        assert "num_qubits" in ds.attrs, "num_qubits attribute missing"
+        assert "iterations" in ds.data_vars, "iterations dimension missing"
+        assert "sigma" in ds.coords, "sigma dimension missing"
+    finally:
+        # Clean up test directory after test
+        if os.path.exists(test_dir):
+            shutil.rmtree(test_dir)
 
 
 def test_simpsons_rule():
