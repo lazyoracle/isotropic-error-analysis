@@ -1,10 +1,12 @@
 """This module contains functions for constructing orthonormal basis of Pi."""
 
+import jax
 import jax.numpy as jnp
 from jax import Array
 from jax.typing import ArrayLike
 
 
+@jax.jit
 def get_orthonormal_basis(Phi: ArrayLike) -> Array:
     """
     Construct an orthonormal basis given a point $\\Phi$ on a unit sphere.

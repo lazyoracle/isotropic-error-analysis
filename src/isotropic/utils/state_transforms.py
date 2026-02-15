@@ -1,5 +1,6 @@
 """This module contains functions for transforming the quantum state."""
 
+import jax
 import jax.numpy as jnp
 import jax.random as random
 from jax import Array
@@ -11,6 +12,7 @@ from isotropic.thetazero import get_theta_zero
 from isotropic.utils.distribution import double_factorial_ratio, normal_integrand
 
 
+@jax.jit
 def statevector_to_hypersphere(Phi: Array) -> Array:
     """
     Generate the hypersphere from statevector $\\Phi$.
@@ -29,6 +31,7 @@ def statevector_to_hypersphere(Phi: Array) -> Array:
     return S
 
 
+@jax.jit
 def hypersphere_to_statevector(S: Array) -> Array:
     """
     Generate the statevector $\\Phi$ from hypersphere $S$.
@@ -48,6 +51,7 @@ def hypersphere_to_statevector(S: Array) -> Array:
     return Phi
 
 
+@jax.jit
 def add_isotropic_error(Phi_sp: Array, e2: Array, theta_zero: float) -> Array:
     """
     Add isotropic error to state $\\Phi$ given $e_2$ and $\\theta_0$.
