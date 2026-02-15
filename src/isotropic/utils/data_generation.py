@@ -165,8 +165,8 @@ def run_experiment(
         theta_zero = get_theta_zero(x=x, g=g)
         Psi_spherical = add_isotropic_error(Phi_spherical, e2=e2, theta_zero=theta_zero)
         Psi = hypersphere_to_statevector(Psi_spherical)
-        statevector_error = Statevector(Psi.tolist())
-        return statevector_error.probabilities_dict()[marked_item]
+        marked_index = int(marked_item, 2)
+        return jnp.abs(Psi[marked_index]) ** 2
 
     sigmas = jnp.linspace(min_sigma, max_sigma, num_sigma_points)
 
