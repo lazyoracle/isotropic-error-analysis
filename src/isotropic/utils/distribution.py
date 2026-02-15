@@ -61,6 +61,8 @@ def double_factorial_ratio(num: int, den: int) -> float:
     return np.prod(result_array)
 
 
+# Don't jit as it is always called inside a larger JIT context
+# via the g(theta) closure; the outer jit(vmap(...)) handles compilation
 def normal_integrand(
     theta: float, d: int, sigma: float, log_factorial_ratio: float | None = None
 ) -> Array:

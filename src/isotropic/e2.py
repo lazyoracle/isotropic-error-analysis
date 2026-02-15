@@ -44,6 +44,8 @@ def _compute_fraction(dj: int, k: int, odd: bool) -> float:
     return float(np.prod(np.array(num_list) / np.array(den_list)))
 
 
+# Don't jit as it has Python-level branching on static j/d;
+# unrolls at trace time within get_e2_coeffs's loop
 def F_j(theta_j: float, j: int, d: int) -> Array:
     """
     Calculate the function $F_j$ for the given angle $\\theta_j$ and index $j$ in dimension $d$.

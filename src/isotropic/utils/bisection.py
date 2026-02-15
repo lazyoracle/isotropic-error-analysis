@@ -7,6 +7,7 @@ import jax.numpy as jnp
 from jax.typing import ArrayLike
 
 
+# Don't jit as it takes callables as argument
 def get_theta(
     F: Callable, a: float, b: float, x: float | ArrayLike, eps: float
 ) -> float:

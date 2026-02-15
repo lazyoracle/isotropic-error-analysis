@@ -10,6 +10,7 @@ from isotropic.utils.bisection import get_theta
 from isotropic.utils.simpsons import simpsons_rule
 
 
+# Don't jit as it takes callables as argument
 def get_theta_zero(x: ArrayLike, g: Callable) -> float:
     """
     Calculate the inverse angle $\\theta_0$ with a normal distribution given a value x.

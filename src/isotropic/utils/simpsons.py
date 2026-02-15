@@ -6,6 +6,7 @@ import jax.numpy as jnp
 from jax import Array
 
 
+# Don't jit as it takes callables as argument
 def simpsons_rule(f: Callable, a: float, b: float, C: float, tol: float) -> Array:
     """
     Estimate the integral of a function using Simpson's rule.
