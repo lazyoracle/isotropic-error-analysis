@@ -3,13 +3,14 @@ import shutil
 from glob import glob
 
 import jax.numpy as jnp
+import pytest
 import xarray as xr
 from scipy.linalg import null_space
 from scipy.special import factorial2
 from typer.testing import CliRunner
 
 from isotropic.utils.bisection import get_theta
-from isotropic.utils.data_generation import app
+from isotropic.utils.data_generation import app, cli, generate_data
 from isotropic.utils.distribution import (
     double_factorial_jax,
     double_factorial_ratio,
@@ -36,7 +37,8 @@ def test_cli():
         result = runner.invoke(
             app,
             [
-                "3",  # num_qubits
+                "3",  # min_qubits
+                "3",  # max_qubits
                 "2",  # min_iterations
                 "2",  # max_iterations
                 "0.9",  # min_sigma
@@ -60,6 +62,57 @@ def test_cli():
         # Clean up test directory after test
         if os.path.exists(test_dir):
             shutil.rmtree(test_dir)
+
+
+def test_cli_with_sigma_values():
+    test_dir = "test_data_sigma_values"
+
+    if os.path.exists(test_dir):
+        shutil.rmtree(test_dir)
+
+    try:
+        runner = CliRunner()
+        result = runner.invoke(
+            app,
+            [
+                "3",  # min_qubits
+                "3",  # max_qubits
+                "2",  # min_iterations
+                "2",  # max_iterations
+                "--sigma-values",
+                "0.9,0.95",
+                "--data-dir",
+                test_dir,
+            ],
+        )
+        assert result.exit_code == 0, f"CLI failed with error: {result.output}"
+        files = glob(os.path.join(test_dir, "*.nc"))
+        assert len(files) > 0, "No data files created by CLI"
+        ds = xr.open_dataset(files[0])
+        # sigma coord should contain [0.9, 0.95, 1.0] (explicit values + error-free)
+        assert len(ds.coords["sigma"]) == 3
+    finally:
+        if os.path.exists(test_dir):
+            shutil.rmtree(test_dir)
+
+
+def test_generate_data_raises_without_sigmas():
+    with pytest.raises(
+        ValueError, match="sigma_values or both min_sigma and max_sigma"
+    ):
+        generate_data(
+            min_qubits=3,
+            max_qubits=3,
+            min_iterations=1,
+            max_iterations=1,
+        )
+
+
+def test_cli_entry_point_no_args(monkeypatch):
+    monkeypatch.setattr("sys.argv", ["generate-data"])
+    with pytest.raises(SystemExit) as exc_info:
+        cli()
+    assert exc_info.value.code == 0
 
 
 def test_simpsons_rule():
