@@ -4,12 +4,13 @@ This module generates data for Grover's algorithm with isotropic error.
 
 import os
 import sys
+from typing import Optional
 
 import jax
 import jax.numpy as jnp
 import typer
 import xarray as xr
-from jax import random
+from jax import Array, random
 from qiskit.quantum_info import Operator, Statevector
 
 from isotropic.algos.grover import get_grover_circuit
@@ -26,12 +27,14 @@ from isotropic.utils.state_transforms import (
 
 # TODO: add an algo parameter which for now only supports "grover"
 def generate_data(
-    num_qubits: int,
+    min_qubits: int,
+    max_qubits: int,
     min_iterations: int,
     max_iterations: int,
-    min_sigma: float,
-    max_sigma: float,
+    min_sigma: Optional[float] = None,
+    max_sigma: Optional[float] = None,
     num_sigma_points: int = 2,
+    sigma_values: Optional[list[float]] = None,
     data_dir: str = "data",
 ) -> None:
     """
@@ -39,18 +42,23 @@ def generate_data(
 
     Parameters
     ----------
-    num_qubits : int
-        Number of qubits in the Grover's algorithm.
+    min_qubits : int
+        Minimum number of qubits.
+    max_qubits : int
+        Maximum number of qubits.
     min_iterations : int
         Minimum number of Grover iterations to simulate.
     max_iterations : int
         Maximum number of Grover iterations to simulate.
-    min_sigma : float
-        Minimum sigma value for isotropic error.
-    max_sigma : float
-        Maximum sigma value for isotropic error.
+    min_sigma : float, optional
+        Minimum sigma value for isotropic error. Required if sigma_values is not provided.
+    max_sigma : float, optional
+        Maximum sigma value for isotropic error. Required if sigma_values is not provided.
     num_sigma_points : int, optional
         Number of sigma points to evaluate between min_sigma and max_sigma. Default is 2.
+    sigma_values : list[float], optional
+        Explicit list of sigma values. If provided, min_sigma/max_sigma/num_sigma_points
+        are ignored.
     data_dir : str, optional
         Directory to save the generated data files. Default is "data".
 
@@ -59,147 +67,156 @@ def generate_data(
     None
         Saves the generated data to xarray files.
     """
-    # We first implement the oracle that will add a phase to our desired search item.
-    # Note the negative sign on one of the diagonal entries.
-    # TODO: change hardcoded grover oracle
-    oracle = jnp.eye(2**num_qubits).tolist()
-    oracle[3][3] = -1
-    U_w = Operator(oracle)
-    marked_item = "0" * (num_qubits - 2) + "11"
+    if sigma_values is not None:
+        sigmas = jnp.array(sigma_values)
+    elif min_sigma is not None and max_sigma is not None:
+        sigmas = jnp.linspace(min_sigma, max_sigma, num_sigma_points)
+    else:
+        raise ValueError("Provide either sigma_values or both min_sigma and max_sigma.")
 
     os.makedirs(data_dir, exist_ok=True)
-    for iterations in range(min_iterations, max_iterations + 1):
-        data = run_experiment(
-            num_qubits=num_qubits,
-            U_w=U_w,
-            iterations=iterations,
+
+    # Loop over qubit counts (cannot vmap: each num_qubits yields different
+    # array shapes, e.g. statevector length 2^n).
+    for num_qubits in range(min_qubits, max_qubits + 1):
+        # TODO: change hardcoded grover oracle
+        oracle = jnp.eye(2**num_qubits).tolist()
+        oracle[3][3] = -1
+        U_w = Operator(oracle)
+        marked_item = "0" * (num_qubits - 2) + "11"
+
+        # Pre-compute all statevectors via Qiskit (not JAX-traceable).
+        iterations_range = list(range(min_iterations, max_iterations + 1))
+        statevectors = []
+        error_free_probs = []
+        for iterations in iterations_range:
+            circuit = get_grover_circuit(num_qubits, U_w, iterations)
+            sv = Statevector(circuit)
+            statevectors.append(jnp.array(sv.data))
+            error_free_probs.append(sv.probabilities_dict()[marked_item])
+
+        Phi_batch = jnp.stack(statevectors)  # (num_iters, 2^n) complex
+        error_free_batch = jnp.array(error_free_probs)
+
+        # Batch JAX computation: vmap over iterations and sigmas
+        results = run_experiment_batch(
+            Phi_batch=Phi_batch,
             marked_item=marked_item,
-            min_sigma=min_sigma,
-            max_sigma=max_sigma,
-            num_sigma_points=num_sigma_points,
+            sigmas=sigmas,
         )
-        # Save xarray data to file
-        data.to_netcdf(
-            f"{data_dir}/grover_{num_qubits}_qubits_{iterations}_iterations.nc"
-        )
+        # results shape: (num_iterations, num_sigma_points)
+
+        # Save per-iteration xarray files
+        for i, iterations in enumerate(iterations_range):
+            error_success = jnp.append(results[i], error_free_batch[i])
+            data = xr.Dataset(
+                {
+                    "success_probability": (["sigma"], error_success),
+                    "iterations": iterations,
+                },
+                coords={
+                    "sigma": jnp.append(sigmas, jnp.array([1.0])),
+                },
+                attrs={
+                    "num_qubits": num_qubits,
+                    "marked_item": marked_item,
+                },
+            )
+            data.to_netcdf(
+                f"{data_dir}/grover_{num_qubits}_qubits_{iterations}_iterations.nc"
+            )
 
 
-def run_experiment(
-    num_qubits: int,
-    U_w: Operator,
-    iterations: int,
+def run_experiment_batch(
+    Phi_batch: Array,
     marked_item: str,
-    min_sigma: float,
-    max_sigma: float,
-    num_sigma_points: int,
-) -> xr.Dataset:
+    sigmas: Array,
+) -> Array:
     """
-    Run Grover's algorithm experiment with isotropic error and return results as xarray Dataset.
+    Run batched experiment: vmap over iterations and sigmas.
+
+    For a fixed num_qubits all statevectors share the same shape, so the
+    pure-JAX computation is vmapped over the iteration dimension (Phi_batch)
+    and the sigma dimension in a single JIT-compiled XLA program.
 
     Parameters
     ----------
-    num_qubits : int
-        Number of qubits in the Grover's algorithm.
-    U_w : Operator
-        Oracle operator for Grover's algorithm.
-    iterations : int
-        Number of Grover iterations to perform.
+    Phi_batch : Array
+        Stack of complex statevectors, shape ``(num_iterations, 2**n)``.
     marked_item : str
         The marked item to search for in binary string format.
-    min_sigma : float
-        Minimum sigma value for isotropic error.
-    max_sigma : float
-        Maximum sigma value for isotropic error.
-    num_sigma_points : int
-        Number of sigma points to evaluate between min_sigma and max_sigma.
+    sigmas : Array
+        Sigma values to evaluate, shape ``(num_sigma_points,)``.
 
     Returns
     -------
-    xr.Dataset
-        Xarray Dataset containing success probabilities for different sigma values.
+    Array
+        Success probabilities, shape ``(num_iterations, num_sigma_points)``.
     """
-    # Grover's Circuit
-    grover_circuit = get_grover_circuit(
-        num_qubits=num_qubits, U_w=U_w, iterations=iterations
-    )
+    # Convert all statevectors to hypersphere (vmap over iterations)
+    Phi_sp_batch = jax.vmap(statevector_to_hypersphere)(Phi_batch)
 
-    # error free final statevector before measurements
-    statevector = Statevector(grover_circuit)
+    # Orthonormal basis for each iteration (vmap)
+    basis_batch = jax.vmap(get_orthonormal_basis)(Phi_sp_batch)
 
-    # The probability of measuring the $0011$ state gives us a likelihood of success for our search exercise.
-    error_free_success = statevector.probabilities_dict()[marked_item]
-
-    # Effect of error levels on success probability
-    ## Pre-compute error parameters that are independent of sigma
-    Phi = statevector.data
-    Phi_spherical = statevector_to_hypersphere(Phi)
-    basis = get_orthonormal_basis(
-        Phi_spherical
-    )  # gives d vectors with d+1 elements each
+    # e2 coefficients: depend only on d (same for all iterations), compute once.
+    d_basis = Phi_sp_batch.shape[1] - 1
     key = random.PRNGKey(0)
-    theta, coeffs = get_e2_coeffs(
-        d=basis.shape[0],  # gives d coefficients for the d vectors above
-        F_j=F_j,
-        key=key,
-    )
-    e2 = jnp.expand_dims(coeffs, axis=-1) * basis
+    _, coeffs = get_e2_coeffs(d=d_basis, F_j=F_j, key=key)
 
-    # sigma specific calculations
-    d = Phi_spherical.shape[0]
-    log_factorial_ratio = jnp.log(double_factorial_ratio(d - 1, d - 2))
+    # e2 per iteration: broadcast coefficients across each iteration's basis
+    e2_batch = jnp.expand_dims(coeffs, axis=-1) * basis_batch
 
-    def get_success_after_error(sigma):
+    d_phi = Phi_sp_batch.shape[1]
+    log_factorial_ratio = jnp.log(double_factorial_ratio(d_phi - 1, d_phi - 2))
+    marked_index = int(marked_item, 2)
+
+    def get_success_for_sigma(sigma):  # numpydoc ignore=PR01,RT01
+        """Compute success probability for one sigma across all iterations."""
+
         def g(theta):
             return normal_integrand(
-                theta, d=d, sigma=sigma, log_factorial_ratio=log_factorial_ratio
+                theta, d=d_phi, sigma=sigma, log_factorial_ratio=log_factorial_ratio
             )
 
         x = random.uniform(key, shape=(), minval=0, maxval=1)
         theta_zero = get_theta_zero(x=x, g=g)
-        Psi_spherical = add_isotropic_error(Phi_spherical, e2=e2, theta_zero=theta_zero)
-        Psi = hypersphere_to_statevector(Psi_spherical)
-        marked_index = int(marked_item, 2)
-        return jnp.abs(Psi[marked_index]) ** 2
 
-    sigmas = jnp.linspace(min_sigma, max_sigma, num_sigma_points)
+        def get_success_for_iter(Phi_sp, e2):
+            Psi_sp = add_isotropic_error(Phi_sp, e2=e2, theta_zero=theta_zero)
+            Psi = hypersphere_to_statevector(Psi_sp)
+            return jnp.abs(Psi[marked_index]) ** 2
 
-    # JIT-compile the vmapped computation for maximum operator fusion
-    # across all sigma values in a single XLA program.
-    error_success = jax.jit(jax.vmap(get_success_after_error))(sigmas)
+        # vmap over iterations
+        return jax.vmap(get_success_for_iter)(Phi_sp_batch, e2_batch)
 
-    error_success = jnp.append(error_success, error_free_success)
+    # Outer vmap over sigmas, JIT the whole computation
+    results = jax.jit(jax.vmap(get_success_for_sigma))(sigmas)
+    # Shape: (num_sigmas, num_iterations)
 
-    # Create xarray Dataset
-    data = xr.Dataset(
-        {
-            "success_probability": (["sigma"], error_success),
-            "iterations": iterations,
-        },
-        coords={
-            "sigma": jnp.append(sigmas, jnp.array([1.0])),
-        },
-        attrs={
-            "num_qubits": num_qubits,
-            "marked_item": marked_item,
-        },
-    )
-
-    return data
+    return results.T  # (num_iterations, num_sigmas)
 
 
 def _main(  # numpydoc ignore=PR01
-    num_qubits: int = typer.Argument(..., help="Number of qubits."),
+    min_qubits: int = typer.Argument(..., help="Minimum number of qubits."),
+    max_qubits: int = typer.Argument(..., help="Maximum number of qubits."),
     min_iterations: int = typer.Argument(
         ..., help="Minimum number of Grover iterations."
     ),
     max_iterations: int = typer.Argument(
         ..., help="Maximum number of Grover iterations."
     ),
-    min_sigma: float = typer.Argument(
-        ..., help="Minimum sigma value for isotropic error."
+    min_sigma: Optional[float] = typer.Argument(
+        default=None,
+        help="Minimum sigma value for isotropic error. Required unless --sigma-values is given.",
     ),
-    max_sigma: float = typer.Argument(
-        ..., help="Maximum sigma value for isotropic error."
+    max_sigma: Optional[float] = typer.Argument(
+        default=None,
+        help="Maximum sigma value for isotropic error. Required unless --sigma-values is given.",
+    ),
+    sigma_values: Optional[str] = typer.Option(
+        None,
+        help="Comma-separated list of sigma values (alternative to min/max sigma).",
     ),
     num_sigma_points: int = typer.Option(2, help="Number of sigma points to evaluate."),
     data_dir: str = typer.Option(
@@ -209,23 +226,31 @@ def _main(  # numpydoc ignore=PR01
     """
     Generate data for Grover's algorithm with isotropic error.
     """
+    parsed_sigmas = (
+        [float(s.strip()) for s in sigma_values.split(",")] if sigma_values else None
+    )
+
     print("Generating data with the following parameters:")
     for name, value in [
-        ("num_qubits", num_qubits),
+        ("min_qubits", min_qubits),
+        ("max_qubits", max_qubits),
         ("min_iterations", min_iterations),
         ("max_iterations", max_iterations),
         ("min_sigma", min_sigma),
         ("max_sigma", max_sigma),
+        ("sigma_values", parsed_sigmas),
         ("num_sigma_points", num_sigma_points),
         ("data_dir", data_dir),
     ]:
         print(f"{name}: {value}")
     generate_data(
-        num_qubits=num_qubits,
+        min_qubits=min_qubits,
+        max_qubits=max_qubits,
         min_iterations=min_iterations,
         max_iterations=max_iterations,
         min_sigma=min_sigma,
         max_sigma=max_sigma,
+        sigma_values=parsed_sigmas,
         num_sigma_points=num_sigma_points,
         data_dir=data_dir,
     )
