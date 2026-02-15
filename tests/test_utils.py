@@ -43,8 +43,6 @@ def test_cli():
                 "0.95",  # max_sigma
                 "--num-sigma-points",
                 "2",
-                "--num-jobs",
-                "1",
                 "--data-dir",
                 test_dir,
             ],

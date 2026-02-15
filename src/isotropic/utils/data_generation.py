@@ -5,11 +5,11 @@ This module generates data for Grover's algorithm with isotropic error.
 import os
 import sys
 
+import jax
 import jax.numpy as jnp
 import typer
 import xarray as xr
 from jax import random
-from joblib import Parallel, delayed
 from qiskit.quantum_info import Operator, Statevector
 
 from isotropic.algos.grover import get_grover_circuit
@@ -32,7 +32,6 @@ def generate_data(
     min_sigma: float,
     max_sigma: float,
     num_sigma_points: int = 2,
-    num_jobs: int = 2,
     data_dir: str = "data",
 ) -> None:
     """
@@ -52,8 +51,6 @@ def generate_data(
         Maximum sigma value for isotropic error.
     num_sigma_points : int, optional
         Number of sigma points to evaluate between min_sigma and max_sigma. Default is 2.
-    num_jobs : int, optional
-        Number of parallel jobs to use for computation. Default is 2.
     data_dir : str, optional
         Directory to save the generated data files. Default is "data".
 
@@ -80,7 +77,6 @@ def generate_data(
             min_sigma=min_sigma,
             max_sigma=max_sigma,
             num_sigma_points=num_sigma_points,
-            num_jobs=num_jobs,
         )
         # Save xarray data to file
         data.to_netcdf(
@@ -96,7 +92,6 @@ def run_experiment(
     min_sigma: float,
     max_sigma: float,
     num_sigma_points: int,
-    num_jobs: int,
 ) -> xr.Dataset:
     """
     Run Grover's algorithm experiment with isotropic error and return results as xarray Dataset.
@@ -117,8 +112,6 @@ def run_experiment(
         Maximum sigma value for isotropic error.
     num_sigma_points : int
         Number of sigma points to evaluate between min_sigma and max_sigma.
-    num_jobs : int
-        Number of parallel jobs to use for computation.
 
     Returns
     -------
@@ -170,12 +163,11 @@ def run_experiment(
 
     sigmas = jnp.linspace(min_sigma, max_sigma, num_sigma_points)
 
-    TIMEOUT = 99999  # see https://stackoverflow.com/a/71977764
-    error_success = Parallel(n_jobs=num_jobs, timeout=TIMEOUT)(
-        delayed(get_success_after_error)(sigma) for sigma in sigmas
-    )
+    # JIT-compile the vmapped computation for maximum operator fusion
+    # across all sigma values in a single XLA program.
+    error_success = jax.jit(jax.vmap(get_success_after_error))(sigmas)
 
-    error_success.append(error_free_success)
+    error_success = jnp.append(error_success, error_free_success)
 
     # Create xarray Dataset
     data = xr.Dataset(
@@ -210,7 +202,6 @@ def _main(  # numpydoc ignore=PR01
         ..., help="Maximum sigma value for isotropic error."
     ),
     num_sigma_points: int = typer.Option(2, help="Number of sigma points to evaluate."),
-    num_jobs: int = typer.Option(2, help="Number of parallel jobs."),
     data_dir: str = typer.Option(
         "data", help="Directory to save the generated data files."
     ),
@@ -226,7 +217,6 @@ def _main(  # numpydoc ignore=PR01
         ("min_sigma", min_sigma),
         ("max_sigma", max_sigma),
         ("num_sigma_points", num_sigma_points),
-        ("num_jobs", num_jobs),
         ("data_dir", data_dir),
     ]:
         print(f"{name}: {value}")
@@ -237,7 +227,6 @@ def _main(  # numpydoc ignore=PR01
         min_sigma=min_sigma,
         max_sigma=max_sigma,
         num_sigma_points=num_sigma_points,
-        num_jobs=num_jobs,
         data_dir=data_dir,
     )
 
