@@ -4,6 +4,8 @@
 
 ## Installation
 
+We recommend installing `isotropic` within a virtual environment. The repository uses [uv](https://docs.astral.sh/uv/getting-started/installation/) for package and project management.
+
 ### Install from pip
 ```bash
 pip install isotropic[all]
@@ -21,12 +23,18 @@ git clone https://github.com/lazyoracle/isotropic-error-analysis
 #### Install library and dependencies
 ```bash
 cd isotropic-error-analysis
-pip install -e .\[all\]
+uv sync
+uv pip install -e .\[all\]
 ```
 
 ### Run examples
 ```bash
-jupyter notebook notebooks/
+uv run jupyter notebook notebooks/
+```
+
+### Run tests
+```bash
+uv run pytest --cov=src --cov-report=html --cov-report=term -n 4
 ```
 
 ## Documentation
@@ -38,7 +46,7 @@ Documentation is available online at https://lazyoracle.github.io/isotropic-erro
 If you want to build and view the documentation locally, follow the steps below:
 
 1. Clone the repository using `git clone https://github.com/lazyoracle/isotropic-error-analysis`
-2. Install dependencies for docs using `pip install -e .\[docs,all\]`
+2. Install dependencies for docs using `uv pip install -e .\[docs,all\]`
 3. Build and serve a live reloading version of the docs using `mkdocs serve`
 
 ## Executive summary of concepts
