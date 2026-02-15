@@ -133,7 +133,6 @@ checks = [
     "ES01", # No extended summary found
     "SA01", # See Also section not found
     "EX01", # No examples section found
-    "GL08", # The object does not have a docstring
 ]
 exclude = [  # don't report on objects that match any of these regex
     '\.__init__$',

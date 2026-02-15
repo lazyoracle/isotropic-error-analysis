@@ -1,3 +1,7 @@
+"""
+Grover's algorithm implementation and utilities for isotropic error analysis.
+"""
+
 import jax.numpy as jnp
 from qiskit import ClassicalRegister, QuantumCircuit, QuantumRegister
 from qiskit.primitives import PrimitiveResult

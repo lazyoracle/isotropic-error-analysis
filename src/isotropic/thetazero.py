@@ -32,7 +32,7 @@ def get_theta_zero(x: ArrayLike, g: Callable) -> float:
     """
 
     # We wrap the function g into a callable F that integrates g from 0 to theta.
-    def F(theta: float) -> Array:
+    def F(theta: float) -> Array:  # numpydoc ignore=GL08
         # TODO: Provide the correct value for C based on the 4th derivative bound
         return simpsons_rule(g, 0, theta, 1, 1e-15)
 

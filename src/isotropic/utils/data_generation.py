@@ -174,7 +174,7 @@ def run_experiment_batch(
     def get_success_for_sigma(sigma):  # numpydoc ignore=PR01,RT01
         """Compute success probability for one sigma across all iterations."""
 
-        def g(theta):
+        def g(theta):  # numpydoc ignore=GL08
             return normal_integrand(
                 theta, d=d_phi, sigma=sigma, log_factorial_ratio=log_factorial_ratio
             )
@@ -182,7 +182,7 @@ def run_experiment_batch(
         x = random.uniform(key, shape=(), minval=0, maxval=1)
         theta_zero = get_theta_zero(x=x, g=g)
 
-        def get_success_for_iter(Phi_sp, e2):
+        def get_success_for_iter(Phi_sp, e2):  # numpydoc ignore=GL08
             Psi_sp = add_isotropic_error(Phi_sp, e2=e2, theta_zero=theta_zero)
             Psi = hypersphere_to_statevector(Psi_sp)
             return jnp.abs(Psi[marked_index]) ** 2
@@ -262,6 +262,9 @@ app.command()(_main)
 
 
 def cli():
+    """
+    Command-line interface for data generation.
+    """
     if len(sys.argv) == 1:
         # No arguments provided, show help and exit
         sys.argv.append("--help")

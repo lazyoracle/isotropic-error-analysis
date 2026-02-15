@@ -39,11 +39,11 @@ def get_theta(
     that repeatedly bisects an interval and then selects a subinterval in which a root exists.
     """
 
-    def cond_fn(state):
+    def cond_fn(state):  # numpydoc ignore=GL08
         a, b = state
         return (b - a) > eps
 
-    def body_fn(state):
+    def body_fn(state):  # numpydoc ignore=GL08
         a, b = state
         c = (a + b) / 2.0
         Fc = F(c)

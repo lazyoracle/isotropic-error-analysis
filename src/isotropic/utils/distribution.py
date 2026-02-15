@@ -54,7 +54,7 @@ def double_factorial_ratio(num: int, den: int) -> float:
     num_array = np.array(num_list)
     den_array = np.array(den_list)
 
-    def ratio(a, b):
+    def ratio(a, b):  # numpydoc ignore=GL08
         return a / b
 
     result_array = np.vectorize(ratio)(num_array, den_array)

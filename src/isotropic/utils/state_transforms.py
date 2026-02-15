@@ -113,7 +113,7 @@ def generate_and_add_isotropic_error(
     d = Phi_spherical.shape[0]
     log_factorial_ratio = jnp.log(double_factorial_ratio(d - 1, d - 2))
 
-    def g(theta):
+    def g(theta):  # numpydoc ignore=GL08
         return normal_integrand(
             theta, d=d, sigma=sigma, log_factorial_ratio=log_factorial_ratio
         )

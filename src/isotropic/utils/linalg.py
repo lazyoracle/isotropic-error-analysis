@@ -1,3 +1,7 @@
+"""
+Linear algebra utilities for isotropic error analysis, implemented using JAX.
+"""
+
 import jax.numpy as jnp
 from jax import Array
 from jax.scipy.linalg import svd
