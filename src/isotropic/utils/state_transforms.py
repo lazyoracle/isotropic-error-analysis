@@ -100,7 +100,6 @@ def generate_and_add_isotropic_error(
     Array
         The perturbed statevector after adding isotropic error.
     """
-    # Set up logging
 
     Phi_spherical = statevector_to_hypersphere(Phi)
     basis = get_orthonormal_basis(
