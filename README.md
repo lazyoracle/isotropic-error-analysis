@@ -27,6 +27,14 @@ uv sync
 uv pip install -e .\[all\]
 ```
 
+**NOTE**:
+
+It is important to set your environment to enable 64-bit operations in JAX. You can do this:
+
+1. At the beginning of your script or notebook using `jax.config.update('jax_enable_x64', True)`
+2. While running your script using `JAX_ENABLE_X64=1 python script.py`
+3. Within your shell configuration file (e.g., `~/.zshrc`) using `export JAX_ENABLE_X64=True`
+
 ### Run examples
 ```bash
 uv run jupyter notebook notebooks/
