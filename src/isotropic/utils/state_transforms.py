@@ -8,7 +8,7 @@ from jax.typing import ArrayLike
 from isotropic.e2 import F_j, get_e2_coeffs
 from isotropic.orthonormal import get_orthonormal_basis
 from isotropic.thetazero import get_theta_zero
-from isotropic.utils.distribution import normal_integrand
+from isotropic.utils.distribution import double_factorial_ratio, normal_integrand
 
 
 def statevector_to_hypersphere(Phi: Array) -> Array:
@@ -106,8 +106,13 @@ def generate_and_add_isotropic_error(
     )
     e2 = jnp.expand_dims(coeffs, axis=-1) * basis
 
+    d = Phi_spherical.shape[0]
+    log_factorial_ratio = jnp.log(double_factorial_ratio(d - 1, d - 2))
+
     def g(theta):
-        return normal_integrand(theta, d=Phi_spherical.shape[0], sigma=sigma)
+        return normal_integrand(
+            theta, d=d, sigma=sigma, log_factorial_ratio=log_factorial_ratio
+        )
 
     x = random.uniform(key, shape=(), minval=0, maxval=1)
     theta_zero = get_theta_zero(x=x, g=g)

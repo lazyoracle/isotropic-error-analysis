@@ -61,7 +61,9 @@ def double_factorial_ratio(num: int, den: int) -> float:
     return np.prod(result_array)
 
 
-def normal_integrand(theta: float, d: int, sigma: float) -> Array:
+def normal_integrand(
+    theta: float, d: int, sigma: float, log_factorial_ratio: float | None = None
+) -> Array:
     """
     Compute the function g(θ).
 
@@ -73,6 +75,11 @@ def normal_integrand(theta: float, d: int, sigma: float) -> Array:
         Dimension parameter.
     sigma : float
         Sigma parameter (should be in valid range).
+    log_factorial_ratio : float, optional
+        Precomputed value of ``log((d-1)!! / (d-2)!!)``. When ``None``
+        (the default) it is computed on every call. Passing it in avoids
+        redundant work when the integrand is evaluated many times for the
+        same ``d`` (e.g. during numerical integration).
 
     Returns
     -------
@@ -89,12 +96,13 @@ def normal_integrand(theta: float, d: int, sigma: float) -> Array:
 
     # Compute in log-space to avoid numerical underflow for large d,
     # where sin^(d-1)(theta) and denominator^((d+1)/2) both underflow to 0.
-    factorial_ratio = double_factorial_ratio(d - 1, d - 2)
+    if log_factorial_ratio is None:
+        log_factorial_ratio = jnp.log(double_factorial_ratio(d - 1, d - 2))
 
     denominator_base = 1.0 + sigma**2 - 2.0 * sigma * jnp.cos(theta)
 
     log_result = (
-        jnp.log(factorial_ratio)
+        log_factorial_ratio
         + jnp.log(1.0 - sigma**2)
         + (d - 1) * jnp.log(jnp.sin(theta))
         - jnp.log(jnp.pi)
