@@ -2,6 +2,8 @@
 
 from typing import Callable
 
+import jax
+import jax.numpy as jnp
 from jax.typing import ArrayLike
 
 
@@ -35,11 +37,18 @@ def get_theta(
     and that $F(a) \\leq x \\leq F(b)$. The bisection method is a root-finding method
     that repeatedly bisects an interval and then selects a subinterval in which a root exists.
     """
-    while b - a > eps:
+
+    def cond_fn(state):
+        a, b = state
+        return (b - a) > eps
+
+    def body_fn(state):
+        a, b = state
         c = (a + b) / 2.0
         Fc = F(c)
-        if Fc <= x:
-            a = c
-        else:
-            b = c
+        a_new = jnp.where(Fc <= x, c, a)
+        b_new = jnp.where(Fc <= x, b, c)
+        return (a_new, b_new)
+
+    a, b = jax.lax.while_loop(cond_fn, body_fn, (a, b))
     return (a + b) / 2.0
