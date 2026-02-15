@@ -10,7 +10,6 @@ requires-python = ">=3.11"
 dependencies = [
     "jax>=0.7.0",
     "numpy>=2.3.2",
-    "scipy>=1.16.0",
     "typer>=0.21.2",
 ]
 
@@ -34,6 +33,7 @@ dev = [
     "pytest-cov>=6.2.1",
     "pytest-xdist>=3.8.0",
     "ruff>=0.12.5",
+    "scipy>=1.16.0",
     "xarray>=2025.10.1",
 ]
 algo = [
