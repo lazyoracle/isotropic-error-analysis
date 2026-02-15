@@ -2,7 +2,7 @@ import jax.numpy as jnp
 from jax import Array, random
 from scipy.special import factorial2
 
-from isotropic.e2 import F_j, get_e2_coeffs
+from isotropic.e2 import F_j, _compute_fraction, get_e2_coeffs
 
 
 def test_get_e2():
@@ -30,6 +30,12 @@ def test_get_e2():
     )
 
     assert jnp.allclose(e2, e2_expected), f"Expected {e2_expected}, got {e2}"
+
+
+def test_compute_fraction_empty_lists():
+    """When both num_list and den_list are empty, _compute_fraction returns 1.0."""
+    # dj=2, k=1, odd=False → range(0,2,-2) and range(1,1,-2) are both empty
+    assert _compute_fraction(dj=2, k=1, odd=False) == 1.0
 
 
 def test_F_j_even():
