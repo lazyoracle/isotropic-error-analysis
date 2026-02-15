@@ -3,6 +3,8 @@ on:
   push:
     tags:
       - "*"
+env:
+  JAX_ENABLE_X64: 'True'
 permissions:
   contents: write
 jobs:
@@ -21,9 +23,11 @@ jobs:
           cache: 'pip'
           cache-dependency-path: 'pyproject.toml'
       - run: pip install -e .\[all,docs\]
+      - run: echo $JAX_ENABLE_X64
       - run: pytest -x -vv --cov=src tests/
       - run: mike deploy -u -p ${{ github.ref_name }} latest
    publish:
+    needs: docs
     runs-on: ubuntu-latest
     environment:
       name: pypi
