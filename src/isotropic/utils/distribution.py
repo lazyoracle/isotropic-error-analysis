@@ -87,22 +87,18 @@ def normal_integrand(theta: float, d: int, sigma: float) -> Array:
     $$g(\\theta) = \\frac{(d-1)!! \\times (1-\\sigma^2) \\times \\sin^{d-1}(\\theta)}{\\pi \\times (d-2)!! \\times (1+\\sigma^2-2\\sigma\\cos(\\theta))^{(d+1)/2}}$$.
     """
 
-    # factorial ratio
+    # Compute in log-space to avoid numerical underflow for large d,
+    # where sin^(d-1)(theta) and denominator^((d+1)/2) both underflow to 0.
     factorial_ratio = double_factorial_ratio(d - 1, d - 2)
 
-    # Numerator components
-    one_minus_sigma_sq = 1.0 - sigma**2
-    sin_theta_power = jnp.power(jnp.sin(theta), d - 1)
-
-    # Denominator components
     denominator_base = 1.0 + sigma**2 - 2.0 * sigma * jnp.cos(theta)
-    denominator_power = jnp.power(denominator_base, (d + 1) / 2.0)
 
-    # Combine all terms
-    result = (
-        factorial_ratio
-        * (one_minus_sigma_sq * sin_theta_power)
-        / (jnp.pi * denominator_power)
+    log_result = (
+        jnp.log(factorial_ratio)
+        + jnp.log(1.0 - sigma**2)
+        + (d - 1) * jnp.log(jnp.sin(theta))
+        - jnp.log(jnp.pi)
+        - ((d + 1) / 2.0) * jnp.log(denominator_base)
     )
 
-    return result
+    return jnp.exp(log_result)
