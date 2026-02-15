@@ -12,6 +12,38 @@ from isotropic.utils.bisection import get_theta
 from isotropic.utils.distribution import double_factorial_ratio
 
 
+def _compute_fraction(dj: int, k: int, odd: bool) -> float:
+    """
+    Compute the fraction coefficient for the F_j summation at index k.
+
+    Parameters
+    ----------
+    dj : int
+        The value d - j.
+    k : int
+        The summation index.
+    odd : bool
+        True for the F_odd formula, False for F_even.
+
+    Returns
+    -------
+    float
+        The fraction value.
+    """
+    if odd:
+        num_list = list(range(dj - 2, (2 * k + 2) - 1, -2))
+        den_list = list(range(dj - 1, (2 * k + 1) - 1, -2))
+    else:
+        num_list = list(range(dj - 2, (2 * k + 1) - 1, -2))
+        den_list = list(range(dj - 1, (2 * k) - 1, -2))
+    max_len = max(len(num_list), len(den_list))
+    if max_len == 0:
+        return 1.0
+    num_list += [1] * (max_len - len(num_list))
+    den_list += [1] * (max_len - len(den_list))
+    return float(np.prod(np.array(num_list) / np.array(den_list)))
+
+
 def F_j(theta_j: float, j: int, d: int) -> Array:
     """
     Calculate the function $F_j$ for the given angle $\\theta_j$ and index $j$ in dimension $d$.
@@ -32,64 +64,27 @@ def F_j(theta_j: float, j: int, d: int) -> Array:
     """
     dj = d - j
 
-    def F_odd(_):
-        C_j = (1 / 2) * double_factorial_ratio(dj - 1, dj - 2)
-        prefactor = 1 / 2
-        k_max = (dj - 2) // 2  # upper bound for k in range
-        k_vals = np.arange(0, k_max + 1)
-
-        def product_term(k):
-            num_list = list(range(d - j - 2, (2 * k + 2) - 1, -2))
-            den_list = list(range(d - j - 1, (2 * k + 1) - 1, -2))
-            # make sure both lists are the same length by padding the shorter one with 1s
-            max_len = max(len(num_list), len(den_list))
-            num_list += [1] * (max_len - len(num_list))
-            den_list += [1] * (max_len - len(den_list))
-            num_array = np.array(num_list)
-            den_array = np.array(den_list)
-
-            def ratio(a, b):
-                return a / b
-
-            result_array = np.vectorize(ratio)(num_array, den_array)
-            fraction = np.prod(result_array)
-            return fraction * jnp.sin(theta_j) ** (2 * k)
-
-        sum_terms = np.vectorize(product_term)(k_vals).sum()
-        return prefactor - (C_j * jnp.cos(theta_j) * sum_terms)
-
-    def F_even(_):
-        C_j = (1 / jnp.pi) * double_factorial_ratio(dj - 1, dj - 2)
-        prefactor = theta_j / jnp.pi
-        k_max = (dj - 1) // 2
-        k_vals = np.arange(1, k_max + 1)
-
-        def product_term(k):
-            num_list = list(range(d - j - 2, (2 * k + 1) - 1, -2))
-            den_list = list(range(d - j - 1, (2 * k) - 1, -2))
-            # make sure both lists are the same length by padding the shorter one with 1s
-            max_len = max(len(num_list), len(den_list))
-            num_list += [1] * (max_len - len(num_list))
-            den_list += [1] * (max_len - len(den_list))
-            num_array = np.array(num_list)
-            den_array = np.array(den_list)
-
-            def ratio(a, b):
-                return a / b
-
-            result_array = np.vectorize(ratio)(num_array, den_array)
-            fraction = np.prod(result_array)
-            return fraction * jnp.sin(theta_j) ** (2 * k - 1)
-
-        sum_terms = np.vectorize(product_term)(k_vals).sum()
-        return prefactor - (C_j * jnp.cos(theta_j) * sum_terms)
-
-    # TODO: Use a conditional to choose between F_odd and F_even based on j
-    # return lax.cond(j % 2 == 1, F_odd, F_even, operand=None)
     if j % 2 == 1:
-        return F_odd(None)
+        C_j = (1 / 2) * double_factorial_ratio(dj - 1, dj - 2)
+        k_max = (dj - 2) // 2
+        # Precompute fractions (static values depending only on dj and k)
+        fractions = jnp.array(
+            [_compute_fraction(dj, k, odd=True) for k in range(k_max + 1)]
+        )
+        k_vals = jnp.arange(k_max + 1)
+        sin_powers = jnp.power(jnp.sin(theta_j), 2 * k_vals)
+        sum_terms = jnp.sum(fractions * sin_powers)
+        return 0.5 - C_j * jnp.cos(theta_j) * sum_terms
     else:
-        return F_even(None)
+        C_j = (1 / jnp.pi) * double_factorial_ratio(dj - 1, dj - 2)
+        k_max = (dj - 1) // 2
+        fractions = jnp.array(
+            [_compute_fraction(dj, k, odd=False) for k in range(1, k_max + 1)]
+        )
+        k_vals = jnp.arange(1, k_max + 1)
+        sin_powers = jnp.power(jnp.sin(theta_j), 2 * k_vals - 1)
+        sum_terms = jnp.sum(fractions * sin_powers)
+        return theta_j / jnp.pi - C_j * jnp.cos(theta_j) * sum_terms
 
 
 def get_e2_coeffs(
@@ -120,15 +115,16 @@ def get_e2_coeffs(
     # Generate theta_{d-1} from a uniform distribution in [0, 2*pi]
     theta = theta.at[-1].set(random.uniform(key, shape=(), minval=0, maxval=2 * jnp.pi))
 
-    # Generate theta_j for j = 1, ..., d-2 using bisection method
-    # TODO: vectorize this loop
+    # Generate theta_j for j = 0, ..., d-3 using bisection method.
+    # The Python for loop unrolls at trace time; each j gives a distinct
+    # trace of F_j (different k_max, odd/even branch) which is fine for JIT.
     for j in range(0, d - 2, 1):
         # JAX PRNG is stateless, so we need to split the key
         key, subkey = random.split(key)
         x = random.uniform(key, shape=(), minval=0, maxval=1)
 
         theta_j = get_theta(
-            F=lambda theta: F_j(theta, j, d),
+            F=lambda theta, _j=j: F_j(theta, _j, d),
             a=0,
             b=jnp.pi,
             x=x,
@@ -137,17 +133,10 @@ def get_e2_coeffs(
 
         theta = theta.at[j].set(theta_j)
 
-    # e2 has dimension d
-    e2: Array = jnp.ones(d)
-
-    # e2[1] to e2[d-1] have products of sin(theta) terms
-    # TODO: vectorize this loop
-    for j in range(1, d):
-        e2 = e2.at[j].set(e2[j - 1] * jnp.sin(theta[j - 1]))
+    # Spherical coordinate conversion: cumulative product of sines times cosine
+    e2 = jnp.cumprod(jnp.concatenate([jnp.ones(1), jnp.sin(theta)]))
+    e2 = e2 * jnp.cos(jnp.append(theta, 0.0))
 
     theta = jnp.append(theta, 0)  # Append 0 for cos(0) of last coordinate
-
-    # e2[d] has additional cos(theta) term in product
-    e2 = e2 * jnp.cos(theta)
 
     return theta, e2
