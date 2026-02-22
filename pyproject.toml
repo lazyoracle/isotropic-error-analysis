@@ -2,7 +2,7 @@
 name = "isotropic"
 authors = [
     { name = "Anurag Saha Roy", email = "contact@anuragsaharoy.me"}]
-version = "0.7.0"
+version = "0.8.0"
 license = "Apache-2.0"
 description = "A Python package for isotropic error analysis in quantum computing"
 readme = "README.md"
@@ -11,6 +11,7 @@ dependencies = [
     "jax>=0.7.0",
     "numpy>=2.3.2",
     "typer>=0.21.2",
+    "xarray>=2025.10.1",
 ]
 
 [project.scripts]
@@ -34,7 +35,6 @@ dev = [
     "pytest-xdist>=3.8.0",
     "ruff>=0.12.5",
     "scipy>=1.16.0",
-    "xarray>=2025.10.1",
 ]
 algo = [
     "qiskit~=1.2.4",

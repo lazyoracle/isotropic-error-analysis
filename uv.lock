@@ -870,12 +870,13 @@ wheels = [
 
 [[package]]
 name = "isotropic"
-version = "0.7.0"
+version = "0.8.0"
 source = { editable = "." }
 dependencies = [
     { name = "jax" },
     { name = "numpy" },
     { name = "typer" },
+    { name = "xarray" },
 ]
 
 [package.optional-dependencies]
@@ -898,7 +899,6 @@ all = [
     { name = "qiskit-aer" },
     { name = "ruff" },
     { name = "scipy" },
-    { name = "xarray" },
 ]
 dev = [
     { name = "ipykernel" },
@@ -913,7 +913,6 @@ dev = [
     { name = "pytest-xdist" },
     { name = "ruff" },
     { name = "scipy" },
-    { name = "xarray" },
 ]
 docs = [
     { name = "mike" },
@@ -946,7 +945,7 @@ requires-dist = [
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.12.5" },
     { name = "scipy", marker = "extra == 'dev'", specifier = ">=1.16.0" },
     { name = "typer", specifier = ">=0.21.2" },
-    { name = "xarray", marker = "extra == 'dev'", specifier = ">=2025.10.1" },
+    { name = "xarray", specifier = ">=2025.10.1" },
 ]
 provides-extras = ["dev", "algo", "all", "docs"]
 
