@@ -212,7 +212,11 @@ __marimo__/
 *nc
 *jsonl
 *backup
+*csv
 
 # figures
 *png
 *svg
+
+# specs for future work
+specs/

@@ -6,7 +6,7 @@ import jax.random as random
 from jax import Array
 from jax.typing import ArrayLike
 
-from isotropic.e2 import F_j, get_e2_coeffs
+from isotropic.e2 import get_e2_coeffs
 from isotropic.orthonormal import get_orthonormal_basis
 from isotropic.thetazero import get_theta_zero
 from isotropic.utils.distribution import double_factorial_ratio, normal_integrand
@@ -105,7 +105,6 @@ def generate_and_add_isotropic_error(
     )  # gives d vectors with d+1 elements each
     theta, coeffs = get_e2_coeffs(
         d=basis.shape[0],  # gives d coefficients for the d vectors above
-        F_j=F_j,
         key=key,
     )
     e2 = jnp.expand_dims(coeffs, axis=-1) * basis

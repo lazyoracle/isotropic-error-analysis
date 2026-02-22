@@ -127,6 +127,9 @@ docstring-code-format = false
 # enabled.
 docstring-code-line-length = "dynamic"
 
+[tool.pytest.ini_options]
+markers = ["slow: marks tests as slow (deselect with -m 'not slow', skip by default without --runslow)"]
+
 [tool.numpydoc_validation]
 checks = [
     "all", # check all except the following

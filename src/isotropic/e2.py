@@ -1,7 +1,8 @@
 """This module contains functions for generating the vector $e_2$."""
 
-from typing import Callable, Tuple
+from typing import Tuple
 
+import jax
 import jax.numpy as jnp
 import jax.random as random
 import numpy as np
@@ -44,8 +45,8 @@ def _compute_fraction(dj: int, k: int, odd: bool) -> float:
     return float(np.prod(np.array(num_list) / np.array(den_list)))
 
 
-# Don't jit as it has Python-level branching on static j/d;
-# unrolls at trace time within get_e2_coeffs's loop
+# Not jitted: contains Python-level branching on j % 2 and j-dependent shapes,
+# making it unsuitable for vmap. Used as a standalone utility and in tests.
 def F_j(theta_j: float, j: int, d: int) -> Array:
     """
     Calculate the function $F_j$ for the given angle $\\theta_j$ and index $j$ in dimension $d$.
@@ -89,9 +90,7 @@ def F_j(theta_j: float, j: int, d: int) -> Array:
         return theta_j / jnp.pi - C_j * jnp.cos(theta_j) * sum_terms
 
 
-def get_e2_coeffs(
-    d: int, F_j: Callable, key: ArrayLike = random.PRNGKey(0)
-) -> Tuple[Array, Array]:
+def get_e2_coeffs(d: int, key: ArrayLike = random.PRNGKey(0)) -> Tuple[Array, Array]:
     """
     Generate the coefficients of the vector $e_2$.
 
@@ -99,8 +98,6 @@ def get_e2_coeffs(
     ----------
     d : int
         Dimension of the space.
-    F_j : Callable
-        Function to compute $F_j$ for the given angle, dimension and index.
     key : ArrayLike, optional
         Random key for reproducibility, by default random.PRNGKey(0).
 
@@ -111,29 +108,89 @@ def get_e2_coeffs(
 
         - theta: Array of angles used to construct $e_2$.
         - e2: Array representing the coefficients of the vector $e_2$.
+
+    Notes
+    -----
+    PRNG stream: keys are derived via a single ``random.split(key, d-1)`` call,
+    producing ``d-1`` independent subkeys upfront. This differs from the
+    previous sequential ``key, subkey = random.split(key)`` chain and will
+    yield numerically different draws from the same seed, while remaining
+    statistically equivalent.
     """
-    theta: Array = jnp.zeros(d - 1)
+    # Draw keys upfront: all_subkeys[0] for the azimuthal angle,
+    # all_subkeys[1:] for the d-2 bisection angles.
+    all_subkeys = random.split(key, d - 1)  # shape (d-1, 2)
+    theta_last = random.uniform(all_subkeys[0], shape=(), minval=0, maxval=2 * jnp.pi)
 
-    # Generate theta_{d-1} from a uniform distribution in [0, 2*pi]
-    theta = theta.at[-1].set(random.uniform(key, shape=(), minval=0, maxval=2 * jnp.pi))
+    # Early return for d < 3 (no bisection needed)
+    if d < 3:
+        theta = jnp.array([theta_last])
+        e2 = jnp.cumprod(jnp.concatenate([jnp.ones(1), jnp.sin(theta)]))
+        e2 = e2 * jnp.cos(jnp.append(theta, 0.0))
+        return jnp.append(theta, 0), e2
 
-    # Generate theta_j for j = 0, ..., d-3 using bisection method.
-    # The Python for loop unrolls at trace time; each j gives a distinct
-    # trace of F_j (different k_max, odd/even branch) which is fine for JIT.
-    for j in range(0, d - 2, 1):
-        # JAX PRNG is stateless, so we need to split the key
-        key, subkey = random.split(key)
-        x = random.uniform(key, shape=(), minval=0, maxval=1)
+    # --- Trace-time precomputation of static arrays ---
+    # max number of sum terms across all j; tight at j=0 (even) and j=1 (odd)
+    max_k = (d - 1) // 2
 
-        theta_j = get_theta(
-            F=lambda theta, _j=j: F_j(theta, _j, d),
-            a=0,
-            b=jnp.pi,
-            x=x,
-            eps=1e-9,
-        )
+    C_list: list = []
+    fracs_list: list = []
+    sinexp_list: list = []
+    is_odd_list: list = []
 
-        theta = theta.at[j].set(theta_j)
+    for j in range(d - 2):
+        dj = d - j
+        if j % 2 == 1:  # odd j
+            C_j = 0.5 * double_factorial_ratio(dj - 1, dj - 2)
+            k_max_j = (dj - 2) // 2
+            fracs = [_compute_fraction(dj, k, odd=True) for k in range(k_max_j + 1)]
+            sin_exps = [2 * k for k in range(k_max_j + 1)]
+            is_odd = 1.0
+        else:  # even j
+            C_j = (1.0 / np.pi) * double_factorial_ratio(dj - 1, dj - 2)
+            k_max_j = (dj - 1) // 2
+            fracs = [_compute_fraction(dj, k, odd=False) for k in range(1, k_max_j + 1)]
+            sin_exps = [2 * k - 1 for k in range(1, k_max_j + 1)]
+            is_odd = 0.0
+
+        # Zero-pad fracs; pad sin_exps with int 1 (keeps array integer-typed,
+        # ensuring jnp.power uses integer-power dispatch and avoids the
+        # exp(0*log(0))=NaN path that float 0.0 exponents can trigger).
+        fracs += [0.0] * (max_k - len(fracs))
+        sin_exps += [1] * (max_k - len(sin_exps))
+
+        C_list.append(C_j)
+        fracs_list.append(fracs)
+        sinexp_list.append(sin_exps)
+        is_odd_list.append(is_odd)
+
+    C_arr = jnp.array(C_list)  # (d-2,)
+    fracs_arr = jnp.array(fracs_list)  # (d-2, max_k)
+    sin_exp_arr = jnp.array(sinexp_list)  # (d-2, max_k)
+    is_odd_arr = jnp.array(is_odd_list)  # (d-2,)
+
+    # Draw one uniform x per j via vmap over keys
+    j_subkeys = all_subkeys[1:]  # (d-2, 2)
+    x_vals = jax.vmap(lambda k: random.uniform(k, shape=(), minval=0, maxval=1))(
+        j_subkeys
+    )  # (d-2,)
+
+    # Unified runtime function: same signature for all j, vmappable
+    def compute_theta_j(x, C, fracs, sin_exps, is_odd):  # numpydoc ignore=GL08
+        def F(theta):  # numpydoc ignore=GL08
+            sin_sum = jnp.dot(fracs, jnp.power(jnp.sin(theta), sin_exps))
+            offset = jnp.where(is_odd, 0.5, theta / jnp.pi)
+            return offset - C * jnp.cos(theta) * sin_sum
+
+        return get_theta(F, 0.0, jnp.pi, x, 1e-9)
+
+    # vmap over j: all d-2 bisections run in parallel
+    theta_vals = jax.vmap(compute_theta_j)(
+        x_vals, C_arr, fracs_arr, sin_exp_arr, is_odd_arr
+    )  # (d-2,)
+
+    # Assemble full theta vector and compute e2
+    theta = jnp.append(theta_vals, theta_last)  # (d-1,)
 
     # Spherical coordinate conversion: cumulative product of sines times cosine
     e2 = jnp.cumprod(jnp.concatenate([jnp.ones(1), jnp.sin(theta)]))
